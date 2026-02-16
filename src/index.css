@@ -123,8 +123,14 @@
     @apply border-border;
   }
 
+  html,
+  body,
+  #root {
+    @apply h-full overflow-hidden;
+  }
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased w-full h-[100dvh];
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -347,5 +353,14 @@
       linear-gradient(rgba(34, 211, 238, 0.1) 1px, transparent 1px),
       linear-gradient(90deg, rgba(34, 211, 238, 0.1) 1px, transparent 1px);
     background-size: 50px 50px;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

@@ -580,7 +580,7 @@ export default function Devices() {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] space-y-8 animate-fade-in p-2 md:p-6 lg:p-8">
+    <div className="relative min-h-full space-y-8 animate-fade-in p-4 md:p-6 lg:p-8">
       <VRBackground />
 
       {/* Header Section */}
@@ -614,7 +614,7 @@ export default function Devices() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
           { label: 'Total Devices', value: apiResponse?.data?.count || devices.length, icon: Monitor, color: 'text-blue-400', glow: 'shadow-blue-500/20' },
           { label: 'Online', value: onlineCount, icon: Radio, color: 'text-emerald-400', glow: 'shadow-emerald-500/20', active: true },
@@ -648,7 +648,7 @@ export default function Devices() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Active Sessions Panel */}
           {activeSessions.length > 0 && (
@@ -662,9 +662,9 @@ export default function Devices() {
                   </span>
                 </h2>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2">
+              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2 scroll-smooth">
                 {activeSessions.map((session) => (
-                  <div key={session.id} className="min-w-[280px] max-w-[280px] glassmorphism p-4 rounded-xl border-cyan-500/20 hover:border-cyan-500/40 transition-all relative group overflow-hidden">
+                  <div key={session.id} className="flex-shrink-0 w-[280px] glassmorphism p-4 rounded-xl border-cyan-500/20 hover:border-cyan-500/40 transition-all relative group overflow-hidden">
                     <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
                     <div className="space-y-3">
                       <div className="flex justify-between items-start">
@@ -754,7 +754,7 @@ export default function Devices() {
             )}
 
             {isQueryLoading ? (
-              <div className="glassmorphism p-20 text-center rounded-3xl border-white/5">
+              <div className="glassmorphism p-12 md:p-20 text-center rounded-3xl border-white/5">
                 <div className="relative inline-block">
                   <Loader2 className="w-12 h-12 text-cyan-400 mx-auto animate-spin" />
                   <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full" />
@@ -763,12 +763,12 @@ export default function Devices() {
                 <p className="text-cyan-400/50 text-sm">Accessing encrypted VR frequency streams</p>
               </div>
             ) : error ? (
-              <div className="glassmorphism p-20 text-center text-red-400 border-red-500/20">
+              <div className="glassmorphism p-12 md:p-20 text-center text-red-400 border-red-500/20">
                 <h3 className="text-xl font-bold mb-2">System Error</h3>
                 <p className="text-sm opacity-60">{(error as Error).message}</p>
               </div>
             ) : devices.length === 0 ? (
-              <div className="glassmorphism p-20 text-center border-white/5">
+              <div className="glassmorphism p-12 md:p-20 text-center border-white/5">
                 <Monitor className="w-16 h-16 text-cyan-400/20 mx-auto mb-6" />
                 <h3 className="text-xl font-bold text-white mb-2">No Uplinks Detected</h3>
                 <p className="text-cyan-400/50">
@@ -776,7 +776,7 @@ export default function Devices() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {devices.map((device) => (
                   <DeviceCard
                     key={device.id}
@@ -796,28 +796,26 @@ export default function Devices() {
         </div>
 
         {/* Control Panel */}
-        <div className="space-y-6">
-          <div className="sticky top-24">
-            <ActivitySelector
-              activities={activities}
-              selectedActivities={selectedActivities}
-              onSelectActivity={handleSelectActivity}
-              onSelectVideo={handleSelectVideo}
-              onVideoUpload={refetchActivities}
-              disabled={selectedDeviceIds.length === 0}
-              className={cn("glassmorphism p-6 rounded-3xl border-white/10 shadow-2xl transition-all", isErrorShaking && "animate-shake")}
-            />
+        <div className="space-y-6 lg:h-fit lg:sticky lg:top-24">
+          <ActivitySelector
+            activities={activities}
+            selectedActivities={selectedActivities}
+            onSelectActivity={handleSelectActivity}
+            onSelectVideo={handleSelectVideo}
+            onVideoUpload={refetchActivities}
+            disabled={selectedDeviceIds.length === 0}
+            className={cn("glassmorphism p-6 rounded-3xl border-white/10 shadow-2xl transition-all", isErrorShaking && "animate-shake")}
+          />
 
-            {/* Quick Tips or System Status */}
-            <div className="mt-6 glassmorphism p-4 rounded-2xl border-white/5 bg-gradient-to-br from-cyan-500/10 to-transparent">
-              <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                System Intelligence
-              </h4>
-              <p className="text-xs text-cyan-100/60 leading-relaxed italic">
-                "Select one or more devices from the inventory, then assign an activity from the panel above to begin training."
-              </p>
-            </div>
+          {/* Quick Tips or System Status */}
+          <div className="glassmorphism p-4 rounded-2xl border-white/5 bg-gradient-to-br from-cyan-500/10 to-transparent">
+            <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              System Intelligence
+            </h4>
+            <p className="text-xs text-cyan-100/60 leading-relaxed italic">
+              "Select one or more devices from the inventory, then assign an activity from the panel above to begin training."
+            </p>
           </div>
         </div>
       </div>

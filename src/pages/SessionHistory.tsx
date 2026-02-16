@@ -267,7 +267,7 @@ export default function SessionHistory() {
   const [selectedSession, setSelectedSession] = useState<SessionData | null>(null);
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] space-y-8 animate-fade-in p-2 md:p-6 lg:p-8">
+    <div className="relative min-h-full space-y-8 animate-fade-in p-4 md:p-6 lg:p-8">
       <VRBackground />
 
       {/* Header Section */}
@@ -279,7 +279,7 @@ export default function SessionHistory() {
       </div>
 
       {/* Summary Section */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
           { label: 'Total Sessions', value: totalCount, icon: HistoryIcon, color: 'text-blue-400' },
           { label: 'Completed', value: filteredSessions.filter((s) => s.status.toLowerCase() === 'completed').length, icon: CheckCircle, color: 'text-emerald-400' },

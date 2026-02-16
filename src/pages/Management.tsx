@@ -59,7 +59,6 @@ import AddVideoDialog from '@/components/videos/AddVideoDialog';
 import VRBackground from '@/components/ui/VRBackground';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -190,7 +189,7 @@ export default function Management() {
     };
 
     return (
-        <div className="relative min-h-[calc(100vh-4rem)] flex flex-col space-y-6 animate-fade-in p-2 md:p-6 lg:p-8 overflow-hidden">
+        <div className="relative min-h-full flex flex-col space-y-6 animate-fade-in p-4 md:p-6 lg:p-8">
             <VRBackground />
 
             {/* Header Section */}
@@ -204,30 +203,33 @@ export default function Management() {
                         Manage activities, folders, and VR videos
                     </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 md:gap-3">
                     <AddActivityDialog
                         onSuccess={refetch}
                         trigger={
-                            <Button className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-6 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
-                                <Plus className="w-5 h-5 mr-2" />
-                                ADD ACTIVITY
+                            <Button className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 md:px-6 h-9 md:h-10 text-[10px] md:text-sm shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                                <Plus className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
+                                <span className="hidden sm:inline">ADD ACTIVITY</span>
+                                <span className="sm:hidden">ADD</span>
                             </Button>
                         }
                     />
-                    <Button variant="outline" className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 font-bold">
-                        <Upload className="w-4 h-4 mr-2" />
-                        UPLOAD VIDEO
+                    <Button variant="outline" className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 font-bold h-9 md:h-10 text-[10px] md:text-sm">
+                        <Upload className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                        <span className="hidden sm:inline">UPLOAD VIDEO</span>
+                        <span className="sm:hidden">UPLOAD</span>
                     </Button>
-                    <Button variant="outline" className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 font-bold">
-                        <Download className="w-4 h-4 mr-2" />
-                        IMPORT
+                    <Button variant="outline" className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 font-bold h-9 md:h-10 text-[10px] md:text-sm">
+                        <Download className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                        <span className="hidden sm:inline">IMPORT</span>
+                        <span className="sm:hidden">IMP</span>
                     </Button>
                 </div>
             </div>
 
-            <div className="relative z-10 flex flex-1 gap-6 overflow-hidden">
+            <div className="relative z-10 flex flex-col lg:flex-row flex-1 gap-6">
                 {/* Left Panel - Navigation */}
-                <div className="hidden lg:flex flex-col w-72 bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden">
+                <div className="hidden lg:flex flex-col w-72 bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl h-fit sticky top-24">
                     <div className="p-4 border-b border-white/5">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
@@ -239,7 +241,7 @@ export default function Management() {
                             />
                         </div>
                     </div>
-                    <ScrollArea className="flex-1">
+                    <div className="flex-1 overflow-visible">
                         <div className="p-4 space-y-6">
                             <div>
                                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 px-2">Root Folders</h3>
@@ -282,7 +284,7 @@ export default function Management() {
                                 </div>
                             </div>
                         </div>
-                    </ScrollArea>
+                    </div>
                     <div className="p-4 border-t border-white/5 bg-black/20">
                         <div className="flex items-center gap-3 px-3 py-2">
                             <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
@@ -298,9 +300,9 @@ export default function Management() {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden">
+                <div className="flex-1 flex flex-col min-w-0 bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl">
                     {/* Breadcrumbs / View Header */}
-                    <div className="p-4 border-b border-white/5 bg-black/20 flex items-center justify-between">
+                    <div className="p-4 border-b border-white/5 bg-black/20 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md rounded-t-2xl">
                         <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
                             <button
                                 onClick={handleBackToFolders}
@@ -312,10 +314,10 @@ export default function Management() {
                                 CONTENT LIBRARY
                             </button>
                             {view === 'activity' && (
-                                <>
-                                    <ChevronRight className="w-4 h-4 text-white/20" />
-                                    <span className="text-cyan-400">{selectedActivity?.title}</span>
-                                </>
+                                <div className="flex items-center min-w-0">
+                                    <ChevronRight className="w-4 h-4 text-white/20 flex-shrink-0" />
+                                    <span className="text-cyan-400 truncate ml-2">{selectedActivity?.title}</span>
+                                </div>
                             )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -332,7 +334,7 @@ export default function Management() {
                         </div>
                     </div>
 
-                    <ScrollArea className="flex-1">
+                    <div className="flex-1">
                         <div className="p-6">
                             {isLoading ? (
                                 <div className="flex flex-col items-center justify-center py-32">
@@ -435,50 +437,48 @@ export default function Management() {
                                 </>
                             ) : (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white/5 border border-white/10 rounded-2xl p-4 md:p-6">
-                                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 md:gap-6 text-center sm:text-left">
-                                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 flex-shrink-0">
-                                                <Folder className="w-8 h-8 md:w-10 md:h-10 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
+                                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-2xl p-4">
+                                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left min-w-0 flex-1">
+                                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 flex-shrink-0">
+                                                <Folder className="w-6 h-6 md:w-8 md:h-8 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <div className="flex flex-col sm:flex-row items-center gap-2 mb-2">
-                                                    <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight truncate max-w-full">{selectedActivity?.title}</h2>
-                                                    <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 font-black uppercase tracking-widest text-[10px]">
+                                                <div className="flex flex-col sm:flex-row items-center gap-2 mb-1">
+                                                    <h2 className="text-lg md:text-xl font-black text-white uppercase tracking-tight truncate max-w-full">{selectedActivity?.title}</h2>
+                                                    <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 font-black uppercase tracking-widest text-[8px] flex-shrink-0">
                                                         {selectedActivity?.status}
                                                     </Badge>
                                                 </div>
-                                                <p className="text-white/60 text-xs md:text-sm max-w-2xl uppercase font-bold tracking-wide line-clamp-2 sm:line-clamp-none">
+                                                <p className="text-white/60 text-[10px] md:text-xs max-w-2xl uppercase font-bold tracking-wide line-clamp-2">
                                                     {selectedActivity?.discription || 'Detailed activity matrix not available.'}
                                                 </p>
-                                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 md:gap-6 mt-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Monitor className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
-                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">ID: <span className="text-white/80">{selectedActivity?.identifier}</span></span>
+                                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Monitor className="w-3 h-3 text-cyan-400" />
+                                                        <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">ID: <span className="text-white/80">{selectedActivity?.identifier}</span></span>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <VideoIcon className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
-                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Assets: <span className="text-white/80">{selectedActivity?.videos?.length || 0}</span></span>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <VideoIcon className="w-3 h-3 text-cyan-400" />
+                                                        <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Assets: <span className="text-white/80">{selectedActivity?.videos?.length || 0}</span></span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-row sm:flex-row items-center justify-center gap-3 w-full lg:w-auto">
+                                        <div className="flex items-center justify-center gap-2 w-full lg:w-auto">
                                             <AddVideoDialog
                                                 activityId={selectedActivity?.id || ''}
                                                 activityName={selectedActivity?.title || ''}
                                                 onSuccess={refetch}
                                                 trigger={
-                                                    <Button className="flex-1 lg:flex-none bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs">
-                                                        <Plus className="w-4 h-4 mr-1 md:mr-2" />
-                                                        <span className="hidden sm:inline">ADD VIDEO</span>
-                                                        <span className="sm:hidden">ADD</span>
+                                                    <Button className="flex-1 lg:flex-none h-9 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-[10px]">
+                                                        <Plus className="w-3 h-3 mr-1" />
+                                                        ADD VIDEO
                                                     </Button>
                                                 }
                                             />
-                                            <Button variant="outline" className="flex-1 lg:flex-none border-white/10 bg-white/5 text-white hover:bg-white/10 font-bold text-xs">
-                                                <Settings className="w-4 h-4 mr-1 md:mr-2" />
-                                                <span className="hidden sm:inline">SETTINGS</span>
-                                                <span className="sm:hidden">OPT</span>
+                                            <Button variant="outline" className="flex-1 lg:flex-none h-9 border-white/10 bg-white/5 text-white hover:bg-white/10 font-bold text-[10px]">
+                                                <Settings className="w-3 h-3 mr-1" />
+                                                OPT
                                             </Button>
                                         </div>
                                     </div>
@@ -510,7 +510,7 @@ export default function Management() {
                                                         key={video.id}
                                                         className="group bg-black/40 backdrop-blur-md border border-white/5 rounded-2xl p-3 md:p-4 flex flex-col sm:flex-row items-center sm:justify-between gap-4 hover:border-cyan-500/30 transition-all duration-300"
                                                     >
-                                                        <div className="flex items-center gap-4 md:gap-6 flex-1 min-w-0 w-full">
+                                                        <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0 w-full">
                                                             <div className="relative w-10 h-10 md:w-12 md:h-12 flex-shrink-0 bg-cyan-500/10 rounded-xl flex items-center justify-center border border-cyan-500/20 group-hover:border-cyan-400 transition-colors">
                                                                 <VideoIcon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400" />
                                                                 <div className="absolute -top-1.5 -left-1.5 w-4 h-4 md:w-5 md:h-5 bg-cyan-500 text-black text-[8px] md:text-[10px] font-black flex items-center justify-center rounded-lg border border-black shadow-[0_0_10px_rgba(34,211,238,0.5)]">
@@ -593,7 +593,7 @@ export default function Management() {
                                 </div>
                             )}
                         </div>
-                    </ScrollArea>
+                    </div>
                 </div>
             </div>
 
