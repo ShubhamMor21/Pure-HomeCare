@@ -236,7 +236,7 @@
     10%, 90% {
       transform: translate3d(-1px, 0, 0);
     }
-    
+
     20%, 80% {
       transform: translate3d(2px, 0, 0);
     }
@@ -248,5 +248,104 @@
     40%, 60% {
       transform: translate3d(4px, 0, 0);
     }
+  }
+
+  /* VR Login page animations */
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% {
+      opacity: 0.5;
+      filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.3));
+    }
+    50% {
+      opacity: 1;
+      filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.6));
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* VR input glow effect */
+  .vr-input-focus {
+    @apply transition-all duration-300;
+  }
+
+  .vr-input-focus:focus {
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+    border-color: hsl(187, 85%, 43%);
+  }
+
+  /* Glassmorphism effect */
+  .glassmorphism {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(34, 211, 238, 0.1);
+    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.1);
+  }
+
+  /* Neon glow effects */
+  .neon-glow-cyan {
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.5), 0 0 20px rgba(34, 211, 238, 0.3);
+  }
+
+  .neon-glow-purple {
+    text-shadow: 0 0 10px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+
+  /* Button hover effects */
+  .vr-button-hover {
+    @apply transition-all duration-300 hover:scale-105 active:scale-95;
+  }
+
+  /* VR grid background */
+  .vr-grid-bg {
+    background-image:
+      linear-gradient(rgba(34, 211, 238, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
   }
 }
