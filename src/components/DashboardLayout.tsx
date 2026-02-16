@@ -48,7 +48,7 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#0a1f38] text-white selection:bg-cyan-500/30 w-full overflow-x-hidden">
+    <div className="h-full flex bg-[#0a1f38] text-white selection:bg-cyan-500/30 w-full overflow-hidden">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -128,9 +128,9 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 bg-transparent">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 bg-transparent h-full overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-black/20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 lg:px-10 sticky top-0 z-30 flex-shrink-0">
+        <header className="h-16 bg-black/20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 lg:px-10 flex-shrink-0">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -184,7 +184,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
       </div>

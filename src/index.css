@@ -123,8 +123,14 @@
     @apply border-border;
   }
 
+  html,
+  body,
+  #root {
+    @apply h-full overflow-hidden;
+  }
+
   body {
-    @apply bg-background text-foreground antialiased overflow-x-hidden w-full;
+    @apply bg-background text-foreground antialiased w-full h-[100dvh];
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

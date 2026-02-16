@@ -86,45 +86,47 @@ export default function ActivitySelector({
                   isSelected ? "bg-cyan-500" : "bg-white/10 group-hover/item:bg-white/20"
                 )} />
 
-                <div className="p-4 relative z-10">
-                  <div className="flex items-center gap-4">
+                <div className="p-3 md:p-4 relative z-10">
+                  <div className="flex items-center gap-3 md:gap-4">
                     <div
                       className={cn(
-                        'w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500',
+                        'w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center transition-all duration-500',
                         isSelected
                           ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(34,211,238,0.4)] rotate-3'
                           : 'bg-white/10 text-white/40 group-hover/item:text-white/60 group-hover/item:scale-105'
                       )}
                     >
-                      <ActivityIcon type={activity.id} />
+                      <div className="scale-75 md:scale-100 flex items-center justify-center">
+                        <ActivityIcon type={activity.id} />
+                      </div>
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-0.5 md:mb-1">
                         <p className={cn(
-                          "font-bold tracking-tight transition-colors",
+                          "font-bold text-sm md:text-base tracking-tight transition-colors truncate",
                           isSelected ? "text-cyan-400" : "text-white"
                         )}>
                           {activity.name}
                         </p>
                         {activity.hasVideos && activity.videos && activity.videos.length > 0 && (
-                          <span className="px-1.5 py-0.5 rounded-md bg-white/10 text-white/40 text-[8px] font-bold uppercase tracking-widest">
+                          <span className="px-1.5 py-0.5 rounded-md bg-white/10 text-white/40 text-[7px] md:text-[8px] font-bold uppercase tracking-widest flex-shrink-0">
                             {activity.videos.length} STEP{activity.videos.length !== 1 && 'S'}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-white/40 line-clamp-2 leading-relaxed">
+                      <p className="text-[10px] md:text-xs text-white/40 line-clamp-2 leading-relaxed">
                         {activity.description || 'Initialize high-fidelity simulation environment for professional training.'}
                       </p>
                     </div>
 
                     {isSelected ? (
-                      <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.5)]">
-                        <Check className="w-5 h-5 text-black" />
+                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-cyan-500 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.5)] flex-shrink-0">
+                        <Check className="w-4 h-4 md:w-5 md:h-5 text-black" />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover/item:border-white/30 transition-colors">
-                        <ChevronRight className="w-5 h-5 text-white/20 group-hover/item:text-white/40" />
+                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full border border-white/10 flex items-center justify-center group-hover/item:border-white/30 transition-colors flex-shrink-0">
+                        <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-white/20 group-hover/item:text-white/40" />
                       </div>
                     )}
                   </div>
