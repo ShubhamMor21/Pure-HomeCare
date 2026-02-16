@@ -435,66 +435,68 @@ export default function Management() {
                                 </>
                             ) : (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white/5 border border-white/10 rounded-2xl p-6">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-20 h-20 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
-                                                <Folder className="w-10 h-10 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
+                                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white/5 border border-white/10 rounded-2xl p-4 md:p-6">
+                                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 md:gap-6 text-center sm:text-left">
+                                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 flex-shrink-0">
+                                                <Folder className="w-8 h-8 md:w-10 md:h-10 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
                                             </div>
-                                            <div>
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">{selectedActivity?.title}</h2>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex flex-col sm:flex-row items-center gap-2 mb-2">
+                                                    <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight truncate max-w-full">{selectedActivity?.title}</h2>
                                                     <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 font-black uppercase tracking-widest text-[10px]">
                                                         {selectedActivity?.status}
                                                     </Badge>
                                                 </div>
-                                                <p className="text-white/60 text-sm max-w-2xl uppercase font-bold tracking-wide">
+                                                <p className="text-white/60 text-xs md:text-sm max-w-2xl uppercase font-bold tracking-wide line-clamp-2 sm:line-clamp-none">
                                                     {selectedActivity?.discription || 'Detailed activity matrix not available.'}
                                                 </p>
-                                                <div className="flex items-center gap-6 mt-4">
+                                                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 md:gap-6 mt-4">
                                                     <div className="flex items-center gap-2">
-                                                        <Monitor className="w-4 h-4 text-cyan-400" />
-                                                        <span className="text-xs font-black text-white/40 uppercase tracking-widest">Identifier: <span className="text-white/80">{selectedActivity?.identifier}</span></span>
+                                                        <Monitor className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
+                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">ID: <span className="text-white/80">{selectedActivity?.identifier}</span></span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <VideoIcon className="w-4 h-4 text-cyan-400" />
-                                                        <span className="text-xs font-black text-white/40 uppercase tracking-widest">Video Count: <span className="text-white/80">{selectedActivity?.videos?.length || 0}</span></span>
+                                                        <VideoIcon className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
+                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Assets: <span className="text-white/80">{selectedActivity?.videos?.length || 0}</span></span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-row sm:flex-row items-center justify-center gap-3 w-full lg:w-auto">
                                             <AddVideoDialog
                                                 activityId={selectedActivity?.id || ''}
                                                 activityName={selectedActivity?.title || ''}
                                                 onSuccess={refetch}
                                                 trigger={
-                                                    <Button className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold">
-                                                        <Plus className="w-4 h-4 mr-2" />
-                                                        ADD VIDEO
+                                                    <Button className="flex-1 lg:flex-none bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs">
+                                                        <Plus className="w-4 h-4 mr-1 md:mr-2" />
+                                                        <span className="hidden sm:inline">ADD VIDEO</span>
+                                                        <span className="sm:hidden">ADD</span>
                                                     </Button>
                                                 }
                                             />
-                                            <Button variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10 font-bold">
-                                                <Settings className="w-4 h-4 mr-2" />
-                                                SETTINGS
+                                            <Button variant="outline" className="flex-1 lg:flex-none border-white/10 bg-white/5 text-white hover:bg-white/10 font-bold text-xs">
+                                                <Settings className="w-4 h-4 mr-1 md:mr-2" />
+                                                <span className="hidden sm:inline">SETTINGS</span>
+                                                <span className="sm:hidden">OPT</span>
                                             </Button>
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between px-2">
-                                            <h3 className="text-xs font-black text-cyan-400 uppercase tracking-[0.3em]">Video Assets Matrix</h3>
+                                            <h3 className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.3em]">Video Assets Matrix</h3>
                                             <div className="flex items-center gap-4">
-                                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Sort by: <span className="text-white/60">Order Number</span></span>
+                                                <span className="hidden sm:inline text-[10px] font-black text-white/20 uppercase tracking-widest">Sort by: <span className="text-white/60">Order Number</span></span>
                                                 <LayoutGrid className="w-4 h-4 text-cyan-400" />
                                             </div>
                                         </div>
 
                                         {!selectedActivity?.videos || selectedActivity.videos.length === 0 ? (
-                                            <div className="bg-white/5 border border-dashed border-white/10 rounded-2xl p-16 text-center">
-                                                <VideoIcon className="w-12 h-12 text-white/10 mx-auto mb-4" />
+                                            <div className="bg-white/5 border border-dashed border-white/10 rounded-2xl p-8 md:p-16 text-center">
+                                                <VideoIcon className="w-10 h-10 md:w-12 md:h-12 text-white/10 mx-auto mb-4" />
                                                 <h4 className="text-lg font-bold text-white uppercase tracking-tight mb-1">No Video Uplinks</h4>
-                                                <p className="text-white/40 text-sm uppercase font-medium tracking-wide mb-6">Connect video assets to this activity folder to begin training.</p>
+                                                <p className="text-white/40 text-xs md:text-sm uppercase font-medium tracking-wide mb-6">Connect video assets to this activity folder to begin training.</p>
                                                 <AddVideoDialog
                                                     activityId={selectedActivity?.id || ''}
                                                     activityName={selectedActivity?.title || ''}
@@ -506,46 +508,46 @@ export default function Management() {
                                                 {selectedActivity.videos.map((video, index) => (
                                                     <div
                                                         key={video.id}
-                                                        className="group bg-black/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-cyan-500/30 transition-all duration-300"
+                                                        className="group bg-black/40 backdrop-blur-md border border-white/5 rounded-2xl p-3 md:p-4 flex flex-col sm:flex-row items-center sm:justify-between gap-4 hover:border-cyan-500/30 transition-all duration-300"
                                                     >
-                                                        <div className="flex items-center gap-6 flex-1 min-w-0">
-                                                            <div className="relative w-12 h-12 flex-shrink-0 bg-cyan-500/10 rounded-xl flex items-center justify-center border border-cyan-500/20 group-hover:border-cyan-400 transition-colors">
-                                                                <VideoIcon className="w-5 h-5 text-cyan-400" />
-                                                                <div className="absolute -top-2 -left-2 w-5 h-5 bg-cyan-500 text-black text-[10px] font-black flex items-center justify-center rounded-lg border border-black shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+                                                        <div className="flex items-center gap-4 md:gap-6 flex-1 min-w-0 w-full">
+                                                            <div className="relative w-10 h-10 md:w-12 md:h-12 flex-shrink-0 bg-cyan-500/10 rounded-xl flex items-center justify-center border border-cyan-500/20 group-hover:border-cyan-400 transition-colors">
+                                                                <VideoIcon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400" />
+                                                                <div className="absolute -top-1.5 -left-1.5 w-4 h-4 md:w-5 md:h-5 bg-cyan-500 text-black text-[8px] md:text-[10px] font-black flex items-center justify-center rounded-lg border border-black shadow-[0_0_10px_rgba(34,211,238,0.5)]">
                                                                     {index + 1}
                                                                 </div>
                                                             </div>
                                                             <div className="min-w-0 flex-1">
-                                                                <div className="flex items-center gap-3 mb-1">
-                                                                    <h4 className="font-bold text-white uppercase tracking-wide truncate group-hover:text-cyan-400 transition-colors">
+                                                                <div className="flex items-center gap-2 md:gap-3 mb-1">
+                                                                    <h4 className="font-bold text-sm md:text-base text-white uppercase tracking-wide truncate group-hover:text-cyan-400 transition-colors">
                                                                         {video.title}
                                                                     </h4>
                                                                     <Badge className={cn(
-                                                                        "text-[8px] px-1.5 py-0 rounded font-black uppercase tracking-widest",
+                                                                        "text-[7px] md:text-[8px] px-1 md:px-1.5 py-0 rounded font-black uppercase tracking-widest",
                                                                         video.status === 'ACTIVE' ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-white/40"
                                                                     )}>
                                                                         {video.status}
                                                                     </Badge>
                                                                 </div>
-                                                                <div className="flex items-center gap-4">
+                                                                <div className="flex flex-wrap items-center gap-2 md:gap-4">
                                                                     <div className="flex items-center gap-1.5">
                                                                         <Clock className="w-3 h-3 text-cyan-400/60" />
-                                                                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{video.totalTime || '00:00'}</span>
+                                                                        <span className="text-[9px] md:text-[10px] font-bold text-white/40 uppercase tracking-widest">{video.totalTime || '00:00'}</span>
                                                                     </div>
-                                                                    <Separator orientation="vertical" className="h-2 bg-white/10" />
-                                                                    <p className="text-[10px] font-medium text-white/30 uppercase tracking-wide truncate">
+                                                                    <Separator orientation="vertical" className="hidden md:block h-2 bg-white/10" />
+                                                                    <p className="text-[9px] md:text-[10px] font-medium text-white/30 uppercase tracking-wide truncate max-w-[150px] md:max-w-none">
                                                                         {video.discription || 'No metadata encrypted.'}
                                                                     </p>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-3 ml-4">
-                                                            <div className="hidden sm:flex items-center gap-1">
+                                                        <div className="flex items-center justify-end gap-2 md:gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                                                            <div className="flex items-center gap-1">
                                                                 <TooltipProvider>
                                                                     <Tooltip>
                                                                         <TooltipTrigger asChild>
                                                                             <Button variant="ghost" size="icon" className="w-8 h-8 text-white/40 hover:text-cyan-400 hover:bg-cyan-500/10">
-                                                                                <Share2 className="w-4 h-4" />
+                                                                                <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                                                             </Button>
                                                                         </TooltipTrigger>
                                                                         <TooltipContent className="bg-[#0a1f38] border-white/10 text-white uppercase font-black text-[10px] tracking-widest">Share Protocol</TooltipContent>
@@ -553,7 +555,7 @@ export default function Management() {
                                                                     <Tooltip>
                                                                         <TooltipTrigger asChild>
                                                                             <Button variant="ghost" size="icon" className="w-8 h-8 text-white/40 hover:text-cyan-400 hover:bg-cyan-500/10">
-                                                                                <Settings className="w-4 h-4" />
+                                                                                <Settings className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                                                             </Button>
                                                                         </TooltipTrigger>
                                                                         <TooltipContent className="bg-[#0a1f38] border-white/10 text-white uppercase font-black text-[10px] tracking-widest">Configure Node</TooltipContent>
@@ -562,22 +564,22 @@ export default function Management() {
                                                             </div>
                                                             <DropdownMenu>
                                                                 <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-9 w-9 text-white/40 hover:text-white hover:bg-white/5">
-                                                                        <MoreHorizontal className="w-5 h-5" />
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 text-white/40 hover:text-white hover:bg-white/5">
+                                                                        <MoreHorizontal className="w-4 h-4 md:w-5 md:h-5" />
                                                                     </Button>
                                                                 </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end" className="w-48 bg-[#0a1f38] border-white/10 text-white">
+                                                                <DropdownMenuContent align="end" className="w-48 bg-[#0a1f38] border-white/10 text-white shadow-2xl">
                                                                     <DropdownMenuLabel className="uppercase tracking-widest text-[10px] text-white/40">Asset Controls</DropdownMenuLabel>
                                                                     <DropdownMenuSeparator className="bg-white/5" />
-                                                                    <DropdownMenuItem onClick={() => handleVideoStatusUpdate(video.id, video.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')} className="hover:bg-white/5 focus:bg-white/5 cursor-pointer uppercase font-bold text-xs">
+                                                                    <DropdownMenuItem onClick={() => handleVideoStatusUpdate(video.id, video.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')} className="hover:bg-white/5 focus:bg-white/5 cursor-pointer uppercase font-bold text-xs py-2">
                                                                         {video.status === 'ACTIVE' ? <XCircle className="w-4 h-4 mr-2 text-amber-400" /> : <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />}
                                                                         {video.status === 'ACTIVE' ? 'Set Offline' : 'Set Online'}
                                                                     </DropdownMenuItem>
-                                                                    <DropdownMenuItem className="hover:bg-white/5 focus:bg-white/5 cursor-pointer uppercase font-bold text-xs">
+                                                                    <DropdownMenuItem className="hover:bg-white/5 focus:bg-white/5 cursor-pointer uppercase font-bold text-xs py-2">
                                                                         <History className="w-4 h-4 mr-2 text-cyan-400" /> Reorder Step
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuSeparator className="bg-white/5" />
-                                                                    <DropdownMenuItem onClick={() => { setVideoToDelete(video.id); setIsVideoDeleteAlertOpen(true); }} className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer uppercase font-bold text-xs">
+                                                                    <DropdownMenuItem onClick={() => { setVideoToDelete(video.id); setIsVideoDeleteAlertOpen(true); }} className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer uppercase font-bold text-xs py-2">
                                                                         <Trash2 className="w-4 h-4 mr-2" /> Purge Asset
                                                                     </DropdownMenuItem>
                                                                 </DropdownMenuContent>

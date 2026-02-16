@@ -32,7 +32,7 @@ export default function AddVideoDialog({
     onSuccess,
     trigger,
 }: AddVideoDialogProps) {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
