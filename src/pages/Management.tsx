@@ -59,7 +59,6 @@ import AddVideoDialog from '@/components/videos/AddVideoDialog';
 import VRBackground from '@/components/ui/VRBackground';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 

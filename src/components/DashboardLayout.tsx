@@ -48,7 +48,7 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#0a1f38] text-white selection:bg-cyan-500/30">
+    <div className="min-h-screen flex bg-[#0a1f38] text-white selection:bg-cyan-500/30 w-full overflow-x-hidden">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -184,7 +184,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           <Outlet />
         </main>
       </div>
