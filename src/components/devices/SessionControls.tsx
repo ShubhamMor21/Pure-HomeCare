@@ -71,12 +71,14 @@ export default function SessionControls({
 
 
   return (
-    <div className="flex items-center gap-2 animate-fade-in">
+    <div className="flex items-center gap-3 animate-fade-in">
 
       {hasSelection && (
         <div className="flex items-center gap-2">
           {!canStart && !hasExistingSessionToStart && !someRunningOrPaused && !canResume && (
-            <span className="text-xs text-muted-foreground whitespace-nowrap hidden sm:inline-block">Select activity</span>
+            <span className="text-[10px] font-bold text-cyan-400/40 uppercase tracking-widest whitespace-nowrap hidden sm:inline-block px-3">
+              Assign Activity
+            </span>
           )}
 
           {/* Play/Start Button */}
@@ -85,65 +87,67 @@ export default function SessionControls({
             disabled={!canStart || isLoading}
             size="sm"
             className={cn(
-              'h-9',
-              canStart && 'bg-status-running hover:bg-status-running/90'
+              'h-9 font-bold px-4 rounded-xl transition-all duration-300',
+              canStart
+                ? 'bg-cyan-500 text-black hover:bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:scale-105 active:scale-95'
+                : 'bg-white/5 text-white/20 border border-white/5'
             )}
           >
-            {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-            {hasExistingSessionToStart ? 'Play' : 'Start'}
+            {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2 fill-current" />}
+            {hasExistingSessionToStart ? 'RESUME' : 'START'}
           </Button>
 
-          {/* Pause Button - always visible, disabled when not applicable */}
+          {/* Pause Button */}
           {canPause && (
             <Button
               onClick={onPause}
               disabled={!canPause || isLoading}
-              variant="secondary"
+              variant="outline"
               size="sm"
-              className="h-9 hover:bg-status-paused/10 hover:text-status-paused hover:border-status-paused/20 transition-all"
+              className="h-9 font-bold border-amber-500/30 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 rounded-xl px-4"
             >
-              <Pause className="w-4 h-4 mr-2" />
-              Pause
+              <Pause className="w-4 h-4 mr-2 fill-current" />
+              PAUSE
             </Button>
           )}
 
-          {/* Resume Button - always visible, disabled when not applicable */}
+          {/* Resume Button */}
           {canResume && (
             <Button
               onClick={onResume}
               disabled={!canResume || isLoading}
-              variant="secondary"
+              variant="outline"
               size="sm"
-              className="h-9 hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all"
+              className="h-9 font-bold border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-xl px-4"
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              Resume
+              RESUME
             </Button>
           )}
 
-          {/* Replay Button - replay last completed session */}
+          {/* Replay Button */}
           <Button
             onClick={onReplay}
             disabled={!hasSelection || !allIdle || isLoading}
-            variant="secondary"
+            variant="outline"
             size="sm"
-            className="h-9 hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/20 transition-all"
+            className="h-9 font-bold border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 rounded-xl px-4"
             title={hasSelection && allIdle ? "Replay last completed session" : "Select idle devices to replay"}
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            Replay
+            REPLAY
           </Button>
 
-          {/* Stop Button - always visible, disabled when not applicable */}
+          {/* Stop Button */}
           <Button
             onClick={onStop}
             disabled={!canStop || isLoading}
             variant="destructive"
             size="sm"
-            className="h-9"
+            className="h-9 font-bold bg-red-500/20 text-red-500 border border-red-500/30 hover:bg-red-500/30 rounded-xl px-4"
           >
-            <Square className="w-4 h-4 mr-2" />
-            Stop
+            <Square className="w-4 h-4 mr-2 fill-current" />
+            STOP
           </Button>
         </div>
       )}

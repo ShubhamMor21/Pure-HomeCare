@@ -6,8 +6,9 @@ import ActivitySelector from '@/components/devices/ActivitySelector';
 import SessionControls from '@/components/devices/SessionControls';
 import { Input } from '@/components/ui/input';
 import AddDeviceDialog from '@/components/devices/AddDeviceDialog';
-import { Search, RefreshCw, Monitor, Loader2, Plus } from 'lucide-react';
+import { Search, RefreshCw, Monitor, Loader2, Plus, Users, Radio, CheckCircle, Activity as ActivityIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import VRBackground from '@/components/ui/VRBackground';
 import { toast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -555,6 +556,13 @@ export default function Devices() {
   const onlineCount = devices.filter((d) => d.status === 'online').length;
   const runningCount = devices.filter((d) => (d as any).sessionState === 'running').length;
 
+  const activeSessions = useMemo(() => {
+    if (!sessionsResponse?.data?.rows) return [];
+    return sessionsResponse.data.rows.filter(s =>
+      s.status === 'PLAYING' || s.status === 'PAUSED' || s.status === 'RESUMED'
+    );
+  }, [sessionsResponse]);
+
   const handleSelectAll = () => {
     const onlineDeviceIds = devices
       .filter(d => d.status === 'online')
@@ -572,145 +580,245 @@ export default function Devices() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card-elevated p-4">
-          <p className="text-sm text-muted-foreground">Total Devices</p>
-          <p className="text-2xl font-bold text-foreground">{apiResponse?.data?.count || devices.length}</p>
+    <div className="relative min-h-[calc(100vh-4rem)] space-y-8 animate-fade-in p-2 md:p-6 lg:p-8">
+      <VRBackground />
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white neon-glow-cyan tracking-tight">Admin Dashboard</h1>
+          <p className="text-cyan-400/70 text-sm font-medium">Monitoring & Control Center</p>
         </div>
-        <div className="card-elevated p-4">
-          <p className="text-sm text-muted-foreground">Online</p>
-          <p className="text-2xl font-bold text-status-online">{onlineCount}</p>
-        </div>
-        <div className="card-elevated p-4">
-          <p className="text-sm text-muted-foreground">Running Sessions</p>
-          <p className="text-2xl font-bold text-status-running">{runningCount}</p>
-        </div>
-        <div className="card-elevated p-4">
-          <p className="text-sm text-muted-foreground">Selected</p>
-          <p className="text-2xl font-bold text-primary">{selectedDeviceIds.length}</p>
+        <div className="flex items-center gap-3">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-400/50 group-focus-within:text-cyan-400 transition-colors" />
+            <Input
+              placeholder="Search devices..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyPress}
+              className="pl-10 bg-black/40 border-cyan-500/30 text-white placeholder:text-cyan-400/30 focus:ring-cyan-500/50 focus:border-cyan-500/50 w-[200px] md:w-[300px] backdrop-blur-md"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isQueryLoading || isRefetching}
+            className="border-cyan-500/30 bg-black/40 text-cyan-400 hover:bg-cyan-500/20 backdrop-blur-md"
+          >
+            <RefreshCw className={`w-4 h-4 ${(isQueryLoading || isRefetching) ? 'animate-spin' : ''}`} />
+          </Button>
+          <AddDeviceDialog onSuccess={() => refetch()} />
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Device List */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search devices and press Enter..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearchKeyPress}
-                className="pl-10"
-              />
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {[
+          { label: 'Total Devices', value: apiResponse?.data?.count || devices.length, icon: Monitor, color: 'text-blue-400', glow: 'shadow-blue-500/20' },
+          { label: 'Online', value: onlineCount, icon: Radio, color: 'text-emerald-400', glow: 'shadow-emerald-500/20', active: true },
+          { label: 'Running Sessions', value: runningCount, icon: ActivityIcon, color: 'text-cyan-400', glow: 'shadow-cyan-500/20', pulse: runningCount > 0 },
+          { label: 'Selected', value: selectedDeviceIds.length, icon: CheckCircle, color: 'text-purple-400', glow: 'shadow-purple-500/20' },
+        ].map((stat, i) => (
+          <div key={i} className="glassmorphism p-5 rounded-2xl group hover:scale-[1.02] transition-all duration-300 border-white/5 relative overflow-hidden">
+            <div className={`absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity`}>
+              <stat.icon className={`w-12 h-12 ${stat.color}`} />
             </div>
-            <Button
-              variant="outline"
-              onClick={handleSelectAll}
-              disabled={isQueryLoading || devices.filter(d => d.status === 'online').length === 0}
-              title={(() => {
-                const onlineDeviceIds = devices.filter(d => d.status === 'online').map(d => d.id);
-                const allOnlineSelected = onlineDeviceIds.length > 0 &&
-                  onlineDeviceIds.every(id => selectedDeviceIds.includes(id));
-                return allOnlineSelected ? "Deselect all devices" : "Select all online devices";
-              })()}
-            >
-              {(() => {
-                const onlineDeviceIds = devices.filter(d => d.status === 'online').map(d => d.id);
-                const allOnlineSelected = onlineDeviceIds.length > 0 &&
-                  onlineDeviceIds.every(id => selectedDeviceIds.includes(id));
-                return allOnlineSelected ? "Deselect All" : "Select All";
-              })()}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={isQueryLoading || isRefetching}
-              title="Refresh device list"
-            >
-              <RefreshCw className={`w-4 h-4 ${(isQueryLoading || isRefetching) ? 'animate-spin' : ''}`} />
-            </Button>
-            <AddDeviceDialog onSuccess={() => refetch()} />
-          </div>
-
-          {(selectedDeviceIds.length > 0) && (
-            <div className="card-elevated p-2 flex items-center justify-between animate-fade-in bg-muted/30 border-dashed">
-              <div className="flex items-center gap-2 px-2">
-                <span className="text-sm font-medium">{selectedDeviceIds.length} Selected</span>
-                {(selectedDeviceIds.length > 0) && (
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedDeviceIds([])} className="h-6 px-2 text-xs text-muted-foreground">
-                    Clear
-                  </Button>
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`p-2 rounded-lg bg-white/5 ${stat.color}`}>
+                  <stat.icon className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-semibold text-cyan-100/60 uppercase tracking-wider">{stat.label}</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-white tabular-nums tracking-tight">
+                  {stat.value}
+                </span>
+                {stat.pulse && (
+                  <span className="flex h-2 w-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                  </span>
                 )}
               </div>
-              <SessionControls
-                selectedDevices={selectedDevices}
-                selectedActivities={selectedActivities}
-                activities={activities}
-                onStart={() => handleStart()}
-                onPause={() => handlePause()}
-                onResume={() => handleResume()}
-                onStop={() => handleStop()}
-                onReplay={handleReplay}
-                isLoading={isLoadingControls}
-              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Active Sessions Panel */}
+          {activeSessions.length > 0 && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <ActivityIcon className="w-5 h-5 text-cyan-400" />
+                  Live Sessions
+                  <span className="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                    {activeSessions.length} Active
+                  </span>
+                </h2>
+              </div>
+              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2">
+                {activeSessions.map((session) => (
+                  <div key={session.id} className="min-w-[280px] max-w-[280px] glassmorphism p-4 rounded-xl border-cyan-500/20 hover:border-cyan-500/40 transition-all relative group overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-start">
+                        <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest truncate max-w-[150px]">
+                          {Array.isArray(session.activity) ? session.activity[0]?.title : session.activity?.title}
+                        </span>
+                        <div className="flex items-center gap-1 text-[10px] text-white/50">
+                          <Users className="w-3 h-3" />
+                          <span>{session.device?.title || 'VR Headset'}</span>
+                        </div>
+                      </div>
+                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-cyan-500 animate-shimmer" style={{ width: '100%' }} />
+                      </div>
+                      <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
+                        <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          {session.status}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-[10px] bg-white/5 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/10"
+                          onClick={() => handleDeviceSelect(session.deviceId)}
+                        >
+                          CONTROL
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {isQueryLoading ? (
-            <div className="card-elevated p-12 text-center">
-              <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
-              <h3 className="text-lg font-medium text-foreground mb-2">Fetching devices...</h3>
+          {/* Device List Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Monitor className="w-5 h-5 text-cyan-400" />
+                Device Inventory
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectAll}
+                disabled={isQueryLoading || devices.filter(d => d.status === 'online').length === 0}
+                className="text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+              >
+                {(() => {
+                  const onlineDeviceIds = devices.filter(d => d.status === 'online').map(d => d.id);
+                  const allOnlineSelected = onlineDeviceIds.length > 0 &&
+                    onlineDeviceIds.every(id => selectedDeviceIds.includes(id));
+                  return allOnlineSelected ? "Deselect All" : "Select All Online";
+                })()}
+              </Button>
             </div>
-          ) : error ? (
-            <div className="card-elevated p-12 text-center text-destructive">
-              <h3 className="text-lg font-medium mb-2">Error loading devices</h3>
-              <p>{(error as Error).message}</p>
-            </div>
-          ) : devices.length === 0 ? (
-            <div className="card-elevated p-12 text-center">
-              <Monitor className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No devices found</h3>
-              <p className="text-muted-foreground">
-                {searchQuery
-                  ? 'Try adjusting your search query'
-                  : 'No VR devices are registered yet'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {devices.map((device) => (
-                <DeviceCard
-                  key={device.id}
-                  device={device as any}
-                  isSelected={selectedDeviceIds.includes(device.id)}
-                  onSelect={handleDeviceSelect}
-                  onDelete={handleDeleteDevice}
-                  onStart={() => handleStart([device.id])}
-                  onPause={() => handlePause([device.id])}
-                  onResume={() => handleResume([device.id])}
-                  onStop={() => handleStop([device.id])}
+
+            {selectedDeviceIds.length > 0 && (
+              <div className="glassmorphism p-3 flex items-center justify-between border-cyan-500/30 animate-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-3 px-2">
+                  <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+                    <span className="text-xs font-bold text-cyan-400">{selectedDeviceIds.length}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-white tracking-wide">Devices Selected</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedDeviceIds([])}
+                    className="h-6 px-2 text-[10px] text-cyan-400/60 hover:text-cyan-400 uppercase tracking-widest"
+                  >
+                    Clear
+                  </Button>
+                </div>
+                <SessionControls
+                  selectedDevices={selectedDevices}
+                  selectedActivities={selectedActivities}
+                  activities={activities}
+                  onStart={() => handleStart()}
+                  onPause={() => handlePause()}
+                  onResume={() => handleResume()}
+                  onStop={() => handleStop()}
+                  onReplay={handleReplay}
+                  isLoading={isLoadingControls}
                 />
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+
+            {isQueryLoading ? (
+              <div className="glassmorphism p-20 text-center rounded-3xl border-white/5">
+                <div className="relative inline-block">
+                  <Loader2 className="w-12 h-12 text-cyan-400 mx-auto animate-spin" />
+                  <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full" />
+                </div>
+                <h3 className="text-xl font-bold text-white mt-6 mb-2">Syncing Terminal...</h3>
+                <p className="text-cyan-400/50 text-sm">Accessing encrypted VR frequency streams</p>
+              </div>
+            ) : error ? (
+              <div className="glassmorphism p-20 text-center text-red-400 border-red-500/20">
+                <h3 className="text-xl font-bold mb-2">System Error</h3>
+                <p className="text-sm opacity-60">{(error as Error).message}</p>
+              </div>
+            ) : devices.length === 0 ? (
+              <div className="glassmorphism p-20 text-center border-white/5">
+                <Monitor className="w-16 h-16 text-cyan-400/20 mx-auto mb-6" />
+                <h3 className="text-xl font-bold text-white mb-2">No Uplinks Detected</h3>
+                <p className="text-cyan-400/50">
+                  {searchQuery ? 'Adjust search parameters' : 'Register new devices to start monitoring'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {devices.map((device) => (
+                  <DeviceCard
+                    key={device.id}
+                    device={device as any}
+                    isSelected={selectedDeviceIds.includes(device.id)}
+                    onSelect={handleDeviceSelect}
+                    onDelete={handleDeleteDevice}
+                    onStart={() => handleStart([device.id])}
+                    onPause={() => handlePause([device.id])}
+                    onResume={() => handleResume([device.id])}
+                    onStop={() => handleStop([device.id])}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Control Panel */}
         <div className="space-y-6">
-          <ActivitySelector
-            activities={activities}
-            selectedActivities={selectedActivities}
-            onSelectActivity={handleSelectActivity}
-            onSelectVideo={handleSelectVideo}
-            onVideoUpload={refetchActivities}
-            disabled={selectedDeviceIds.length === 0}
-            className={cn("card-elevated p-5 transition-transform", isErrorShaking && "animate-shake")}
-          />
+          <div className="sticky top-24">
+            <ActivitySelector
+              activities={activities}
+              selectedActivities={selectedActivities}
+              onSelectActivity={handleSelectActivity}
+              onSelectVideo={handleSelectVideo}
+              onVideoUpload={refetchActivities}
+              disabled={selectedDeviceIds.length === 0}
+              className={cn("glassmorphism p-6 rounded-3xl border-white/10 shadow-2xl transition-all", isErrorShaking && "animate-shake")}
+            />
+
+            {/* Quick Tips or System Status */}
+            <div className="mt-6 glassmorphism p-4 rounded-2xl border-white/5 bg-gradient-to-br from-cyan-500/10 to-transparent">
+              <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                System Intelligence
+              </h4>
+              <p className="text-xs text-cyan-100/60 leading-relaxed italic">
+                "Select one or more devices from the inventory, then assign an activity from the panel above to begin training."
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

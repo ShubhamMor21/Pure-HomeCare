@@ -32,7 +32,7 @@ export default function AddVideoDialog({
     onSuccess,
     trigger,
 }: AddVideoDialogProps) {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -194,8 +194,8 @@ export default function AddVideoDialog({
             </DialogTrigger>
             <DialogContent
                 className={cn(
-                    "sm:max-w-lg p-0 overflow-hidden border-none shadow-2xl",
-                    isUploading && "[&>button]:hidden" // Hide the close button during upload
+                    "sm:max-w-lg p-0 overflow-hidden border-white/10 bg-[#0a1f38] text-white shadow-[0_0_50px_rgba(0,0,0,0.5)]",
+                    isUploading && "[&>button]:hidden"
                 )}
                 onPointerDownOutside={(e) => isUploading && e.preventDefault()}
                 onEscapeKeyDown={(e) => isUploading && e.preventDefault()}
@@ -203,68 +203,73 @@ export default function AddVideoDialog({
             >
                 <form onSubmit={handleSubmit} className="flex flex-col relative">
                     {isUploading && (
-                        <div className="absolute inset-0 z-50 bg-background/60 backdrop-blur-[2px] flex flex-col items-center justify-center animate-in fade-in duration-300">
-                            <div className="bg-background rounded-3xl p-8 shadow-2xl flex flex-col items-center gap-4 border border-muted-foreground/10 scale-110">
+                        <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+                            <div className="bg-[#0a1f38]/80 rounded-3xl p-8 shadow-2xl flex flex-col items-center gap-6 border border-cyan-500/20 scale-110">
                                 <div className="relative">
-                                    <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                                    <FileVideo className="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
+                                    <div className="w-20 h-20 rounded-full border-4 border-cyan-500/10 border-t-cyan-500 animate-spin" />
+                                    <FileVideo className="absolute inset-0 m-auto w-8 h-8 text-cyan-400 animate-pulse shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
                                 </div>
                                 <div className="text-center w-full px-8">
-                                    <p className="text-lg font-bold">{uploadStatus || 'Uploading Video...'}</p>
-                                    <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-6 max-w-[300px] mx-auto animate-pulse">
-                                        <p className="text-xs text-destructive font-semibold leading-relaxed italic">
-                                            Wait patiently! This will take some time. <span className="font-black">Don't refresh the page</span> or your progress will be lost.
+                                    <p className="text-xl font-black uppercase tracking-tighter text-white mb-2">{uploadStatus || 'Transmitting Data...'}</p>
+                                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6 max-w-[320px] mx-auto animate-pulse">
+                                        <p className="text-[10px] text-red-400 font-black uppercase tracking-widest leading-relaxed">
+                                            Maintain Connection! This will take some time. <span className="text-white">DO NOT TERMINATE SESSION</span> or data loss will occur.
                                         </p>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-xs font-semibold px-1">
-                                            <span className="text-primary capitalize">{uploadStatus.toLowerCase().replace('_', ' ')}</span>
-                                            <span>{uploadPercentage}%</span>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] px-1">
+                                            <span className="text-cyan-400">{uploadStatus.toLowerCase().replace('_', ' ')}</span>
+                                            <span className="text-white">{uploadPercentage}%</span>
                                         </div>
-                                        <Progress value={uploadPercentage} className="h-2 w-full" />
-                                        <p className="text-[10px] text-center text-muted-foreground mt-2 uppercase tracking-widest opacity-60">
-                                            {uploadPercentage < 50 ? 'Conversion in progress' : 'Uploading to cloud storage'}
+                                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                            <div
+                                                className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)] transition-all duration-300"
+                                                style={{ width: `${uploadPercentage}%` }}
+                                            />
+                                        </div>
+                                        <p className="text-[10px] text-center text-white/30 uppercase tracking-[0.3em] mt-2 font-bold">
+                                            {uploadPercentage < 50 ? 'Matrix Encapsulation' : 'Uplinking to Neural Storage'}
                                         </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
-                    <DialogHeader className="p-6 pb-0">
-                        <DialogTitle className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-                            Add Video to Activity
+                    <DialogHeader className="p-8 pb-0">
+                        <DialogTitle className="text-2xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+                            <VideoIcon className="w-6 h-6 text-cyan-400" />
+                            Uplink Video Asset
                         </DialogTitle>
-                        <DialogDescription className="text-sm mt-1.5 line-clamp-2">
-                            Upload a training video up to <span className="font-semibold text-foreground">200MB</span> to <span className="font-semibold text-foreground text-nowrap">{activityName}</span>.
-                            Supported formats: MP4, MOV.
+                        <DialogDescription className="text-white/40 uppercase font-bold text-xs tracking-wide mt-2">
+                            Add training video asset (MAX: 200MB) to activity: <span className="text-cyan-400">{activityName}</span>
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="p-6 space-y-6">
+                    <div className="p-8 space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor={titleInputId} className="text-sm font-semibold tracking-tight">
-                                Video Title
+                            <Label htmlFor={titleInputId} className="text-[10px] font-black uppercase tracking-widest text-cyan-400/60">
+                                Asset Title
                             </Label>
                             <Input
                                 id={titleInputId}
-                                placeholder="Enter a descriptive title..."
+                                placeholder="Enter asset identifier..."
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
                                 disabled={isUploading}
-                                className="h-11 bg-muted/30 border-muted-foreground/10 focus:bg-background transition-all"
+                                className="h-12 bg-black/40 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-cyan-500/50 uppercase font-bold tracking-wide"
                             />
                         </div>
 
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <Label className="text-sm font-semibold tracking-tight">
-                                    Video Mode
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-cyan-400/60">
+                                    Transmission Mode
                                 </Label>
-                                <div className="bg-amber-500/10 text-amber-600 border border-amber-500/20 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                                    <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                                    Plain Video Coming Soon
+                                <div className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    Plain Node Offline
                                 </div>
                             </div>
                             <Tabs
@@ -272,38 +277,38 @@ export default function AddVideoDialog({
                                 onValueChange={(v) => setVideoMode(v as any)}
                                 className="w-full"
                             >
-                                <TabsList className="grid w-full grid-cols-2 h-11 p-1 bg-muted/50 rounded-xl">
+                                <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-black/40 rounded-xl border border-white/5">
                                     <TabsTrigger
                                         value="Video_360"
                                         disabled={isUploading}
-                                        className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all gap-2 font-bold"
+                                        className="rounded-lg data-[state=active]:bg-cyan-500 data-[state=active]:text-black transition-all gap-2 font-black uppercase text-[10px] tracking-widest"
                                     >
                                         <Globe className="w-4 h-4" />
-                                        360 Video
+                                        360 Immersive
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="Plain_Video"
                                         disabled={true}
-                                        className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all gap-2 font-bold opacity-50 cursor-not-allowed"
+                                        className="rounded-lg data-[state=active]:bg-cyan-500 data-[state=active]:text-black transition-all gap-2 font-black uppercase text-[10px] tracking-widest opacity-30"
                                     >
                                         <Monitor className="w-4 h-4" />
-                                        Plain Video
+                                        Standard View
                                     </TabsTrigger>
                                 </TabsList>
                             </Tabs>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor={fileInputId} className="text-sm font-semibold tracking-tight">
-                                Video File
+                            <Label htmlFor={fileInputId} className="text-[10px] font-black uppercase tracking-widest text-cyan-400/60">
+                                Source File
                             </Label>
                             <div
                                 className={cn(
-                                    "relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-4 transition-all duration-200 group",
+                                    "relative border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-4 transition-all duration-300 group overflow-hidden",
                                     file
-                                        ? "border-primary/40 bg-primary/5"
-                                        : "border-muted-foreground/20 bg-muted/10 hover:border-primary/40 hover:bg-muted/20",
-                                    isDragging && "border-primary bg-primary/10 scale-[1.01]",
+                                        ? "border-cyan-500/40 bg-cyan-500/5"
+                                        : "border-white/10 bg-black/40 hover:border-cyan-500/40 hover:bg-cyan-500/5",
+                                    isDragging && "border-cyan-500 bg-cyan-500/10 scale-[1.01]",
                                     isUploading && "opacity-50 cursor-not-allowed pointer-events-none"
                                 )}
                                 onDragOver={handleDragOver}
@@ -311,6 +316,8 @@ export default function AddVideoDialog({
                                 onDrop={handleDrop}
                                 onClick={() => !isUploading && fileInputRef.current?.click()}
                             >
+                                <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
                                 <input
                                     ref={fileInputRef}
                                     id={fileInputId}
@@ -322,15 +329,15 @@ export default function AddVideoDialog({
                                 />
 
                                 {file ? (
-                                    <div className="flex flex-col items-center text-center animate-in fade-in zoom-in duration-300 w-full px-4">
-                                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                            <FileVideo className="w-8 h-8 text-primary" />
+                                    <div className="flex flex-col items-center text-center animate-in fade-in zoom-in duration-300 w-full px-4 relative z-10">
+                                        <div className="w-20 h-20 rounded-2xl bg-cyan-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border border-cyan-500/30">
+                                            <FileVideo className="w-10 h-10 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]" />
                                         </div>
-                                        <p className="text-sm font-bold text-foreground truncate w-full max-w-xs mb-1">
+                                        <p className="text-sm font-black text-white uppercase tracking-tight truncate w-full max-w-xs mb-1">
                                             {file.name}
                                         </p>
-                                        <p className="text-xs text-muted-foreground font-medium">
-                                            {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                        <p className="text-[10px] text-cyan-400 font-black uppercase tracking-widest opacity-60">
+                                            {(file.size / (1024 * 1024)).toFixed(2)} Megabytes
                                         </p>
 
                                         <Button
@@ -338,55 +345,55 @@ export default function AddVideoDialog({
                                             variant="ghost"
                                             size="sm"
                                             onClick={clearFile}
-                                            className="mt-4 h-8 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            className="mt-6 h-8 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
                                         >
                                             <X className="w-3 h-3 mr-1.5" />
-                                            Remove File
+                                            Terminate Asset
                                         </Button>
                                     </div>
                                 ) : (
-                                    <>
-                                        <div className="w-16 h-16 rounded-2xl bg-muted/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <Upload className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <div className="relative z-10 flex flex-col items-center">
+                                        <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-cyan-500/10 transition-all border border-white/5 group-hover:border-cyan-500/20">
+                                            <Upload className="w-10 h-10 text-white/20 group-hover:text-cyan-400 transition-colors" />
                                         </div>
                                         <div className="text-center">
-                                            <p className="text-sm font-bold text-foreground">
-                                                Click to upload or drag & drop
+                                            <p className="text-sm font-black text-white uppercase tracking-widest mb-1">
+                                                Initiate Uplink
                                             </p>
-                                            <p className="text-xs text-muted-foreground mt-1 px-4">
-                                                Select a video file (max 200MB) to add to this activity
+                                            <p className="text-[10px] text-white/30 uppercase font-bold tracking-wide mt-1 px-4">
+                                                Drag & drop or select source video (200MB LIMIT)
                                             </p>
                                         </div>
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    <DialogFooter className="p-6 pt-2 bg-muted/30 border-t border-muted-foreground/5 flex flex-col sm:flex-row gap-2">
+                    <DialogFooter className="p-8 pt-2 bg-black/20 border-t border-white/5 flex flex-col sm:flex-row gap-3">
                         <Button
                             type="button"
                             variant="ghost"
                             onClick={() => setOpen(false)}
                             disabled={isUploading}
-                            className="flex-1 sm:flex-none font-semibold text-muted-foreground hover:text-foreground"
+                            className="flex-1 sm:flex-none font-black uppercase text-xs tracking-widest text-white/40 hover:text-white"
                         >
-                            Cancel
+                            Abort
                         </Button>
                         <Button
                             type="submit"
                             disabled={!file || !title || isUploading}
-                            className="flex-1 font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                            className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase text-xs tracking-widest shadow-[0_0_20px_rgba(34,211,238,0.2)] transition-all active:scale-[0.98]"
                         >
                             {isUploading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Starting Upload...
+                                    Synchronizing...
                                 </>
                             ) : (
                                 <>
                                     <Upload className="mr-2 h-4 w-4" />
-                                    Upload Video
+                                    Begin Uplink
                                 </>
                             )}
                         </Button>

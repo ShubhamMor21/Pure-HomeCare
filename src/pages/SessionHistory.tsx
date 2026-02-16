@@ -24,13 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Search,
-  CalendarIcon,
-  Filter,
-  History as HistoryIcon,
-  Info,
-} from 'lucide-react';
+import { Search, CalendarIcon, Filter, History as HistoryIcon, Info, Clock, Monitor, Activity, CheckCircle, XCircle, ChevronRight, Square } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -38,22 +32,44 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
+import VRBackground from '@/components/ui/VRBackground';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const getStatusConfig = (status: string) => {
   switch (status.toLowerCase()) {
     case 'completed':
     case 'active':
-      return { label: 'Completed', className: 'status-running' };
+      return {
+        label: 'Completed',
+        className: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.3)]',
+        icon: CheckCircle
+      };
     case 'stopped':
     case 'paused':
-      return { label: 'Stopped', className: 'status-paused' };
+      return {
+        label: 'Stopped',
+        className: 'bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]',
+        icon: XCircle
+      };
     case 'failed':
-      return { label: 'Failed', className: 'bg-destructive/15 text-destructive' };
+      return {
+        label: 'Failed',
+        className: 'bg-red-500/20 text-red-400 border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.3)]',
+        icon: XCircle
+      };
     case 'in-progress':
     case 'running':
-      return { label: 'In Progress', className: 'status-loading' };
+      return {
+        label: 'In Progress',
+        className: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30 shadow-[0_0_10px_rgba(34,211,238,0.3)]',
+        icon: Clock
+      };
     default:
-      return { label: status, className: 'status-idle' };
+      return {
+        label: status,
+        className: 'bg-white/5 text-white/40 border-white/10',
+        icon: Info
+      };
   }
 };
 
@@ -237,88 +253,127 @@ export default function SessionHistory() {
   const hasActiveFilters =
     searchQuery || statusFilter !== 'all' || activityFilter !== 'all' || dateRange.from || dateRange.to;
 
+  const avgDuration = useMemo(() => {
+    if (filteredSessions.length === 0) return '0s';
+    const total = filteredSessions.reduce((acc, s) => {
+      const duration = parseDurationToSeconds(s.duration);
+      if (duration > 0) return acc + duration;
+      const videos = Array.isArray(s.video) ? s.video : (s.video ? [s.video] : []);
+      return acc + videos.reduce((vAcc, v) => vAcc + parseDurationToSeconds(v.totalTime), 0);
+    }, 0);
+    return formatSessionDuration(Math.round(total / filteredSessions.length));
+  }, [filteredSessions]);
+
+  const [selectedSession, setSelectedSession] = useState<SessionData | null>(null);
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="relative min-h-[calc(100vh-4rem)] space-y-8 animate-fade-in p-2 md:p-6 lg:p-8">
+      <VRBackground />
+
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">Session History</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            View and filter past VR training sessions
-          </p>
+          <h1 className="text-3xl font-bold text-white neon-glow-cyan tracking-tight">Session History</h1>
+          <p className="text-cyan-400/70 text-sm font-medium">Review and analyze past VR training sessions</p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="card-elevated p-4">
+      {/* Summary Section */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {[
+          { label: 'Total Sessions', value: totalCount, icon: HistoryIcon, color: 'text-blue-400' },
+          { label: 'Completed', value: filteredSessions.filter((s) => s.status.toLowerCase() === 'completed').length, icon: CheckCircle, color: 'text-emerald-400' },
+          { label: 'Stopped', value: filteredSessions.filter((s) => s.status.toLowerCase() === 'stopped').length, icon: XCircle, color: 'text-amber-400' },
+          { label: 'Avg. Duration', value: avgDuration, icon: Clock, color: 'text-purple-400' },
+        ].map((stat, i) => (
+          <div key={i} className="glassmorphism p-5 rounded-2xl border-white/5 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+              <stat.icon className={`w-12 h-12 ${stat.color}`} />
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`p-2 rounded-lg bg-white/5 ${stat.color}`}>
+                  <stat.icon className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-bold text-cyan-100/60 uppercase tracking-widest">{stat.label}</span>
+              </div>
+              <p className="text-2xl font-bold text-white tracking-tight">{stat.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Modern Filter Panel */}
+      <div className="glassmorphism p-6 rounded-3xl border-white/10 space-y-4">
         <div className="flex flex-col lg:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="relative flex-1 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-400/50 group-focus-within:text-cyan-400 transition-colors" />
             <Input
               placeholder="Search by device or activity..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-black/40 border-cyan-500/20 text-white placeholder:text-cyan-400/30 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-xl"
             />
           </div>
 
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full lg:w-44 bg-background">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="stopped">Stopped</SelectItem>
-              {/* <SelectItem value="failed">Failed</SelectItem> */}
-              <SelectItem value="in-progress">In Progress</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="bg-black/40 border-cyan-500/20 text-white rounded-xl focus:ring-cyan-500/20">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0d2a4a] border-white/10 text-white">
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="stopped">Stopped</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select value={activityFilter} onValueChange={setActivityFilter}>
-            <SelectTrigger className="w-full lg:w-44 bg-background">
-              <SelectValue placeholder="Activity" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">All Activities</SelectItem>
-              {activitiesList.map((activity) => (
-                <SelectItem key={activity.id} value={activity.id}>
-                  {activity.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select value={activityFilter} onValueChange={setActivityFilter}>
+              <SelectTrigger className="bg-black/40 border-cyan-500/20 text-white rounded-xl focus:ring-cyan-500/20">
+                <SelectValue placeholder="Activity" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0d2a4a] border-white/10 text-white">
+                <SelectItem value="all">All Activities</SelectItem>
+                {activitiesList.map((activity) => (
+                  <SelectItem key={activity.id} value={activity.id}>
+                    {activity.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full lg:w-52 justify-start">
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, 'MMM d')} - {format(dateRange.to, 'MMM d')}
-                    </>
-                  ) : (
-                    format(dateRange.from, 'MMM d, yyyy')
-                  )
-                ) : (
-                  'Date range'
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-popover" align="end">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
-                numberOfMonths={2}
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-start bg-black/40 border-cyan-500/20 text-white hover:bg-cyan-500/10 rounded-xl">
+                  <CalendarIcon className="w-4 h-4 mr-2 text-cyan-400" />
+                  <span className="truncate">
+                    {dateRange.from ? (
+                      dateRange.to ? (
+                        <>{format(dateRange.from, 'MMM d')} - {format(dateRange.to, 'MMM d')}</>
+                      ) : (
+                        format(dateRange.from, 'MMM d, yyyy')
+                      )
+                    ) : (
+                      'Date range'
+                    )}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-[#0d2a4a] border-white/10" align="end">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
+                  numberOfMonths={2}
+                  className="p-3 text-white pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
           {hasActiveFilters && (
-            <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground">
+            <Button variant="ghost" onClick={clearFilters} className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-xl">
               <Filter className="w-4 h-4 mr-2" />
               Clear
             </Button>
@@ -326,238 +381,158 @@ export default function SessionHistory() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Session List Redesign */}
       <TooltipProvider>
-        <div className="card-elevated overflow-hidden">
+        <div className="space-y-4">
           {isLoading ? (
-            <div className="p-24 text-center">
-              <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
-              <h3 className="text-lg font-medium text-foreground mb-2">Fetching sessions...</h3>
+            <div className="glassmorphism p-20 text-center rounded-3xl border-white/5">
+              <Loader2 className="w-12 h-12 text-cyan-400 mx-auto mb-6 animate-spin" />
+              <h3 className="text-xl font-bold text-white mb-2">Accessing Data Logs...</h3>
+              <p className="text-cyan-400/50 text-sm font-medium">Synchronizing with central VR database</p>
             </div>
           ) : isError ? (
-            <div className="p-24 text-center text-destructive">
-              <h3 className="text-lg font-medium mb-2">Error loading sessions</h3>
-              <p>{(error as Error).message}</p>
+            <div className="glassmorphism p-20 text-center text-red-400 border-red-500/20 rounded-3xl">
+              <XCircle className="w-12 h-12 mx-auto mb-4" />
+              <h3 className="text-xl font-bold mb-2">Protocol Failure</h3>
+              <p className="text-sm opacity-60">{(error as Error).message}</p>
             </div>
           ) : filteredSessions.length === 0 ? (
-            <div className="p-12 text-center">
-              <HistoryIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No sessions found</h3>
-              <p className="text-muted-foreground">
-                {hasActiveFilters
-                  ? 'Try adjusting your filters'
-                  : 'No training sessions have been recorded yet'}
-              </p>
+            <div className="glassmorphism p-20 text-center border-white/5 rounded-3xl">
+              <HistoryIcon className="w-16 h-16 text-cyan-400/20 mx-auto mb-6" />
+              <h3 className="text-xl font-bold text-white mb-2">Archive Empty</h3>
+              <p className="text-cyan-400/50">No training records found matching the current filters</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>Device</TableHead>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Video</TableHead>
-                  <TableHead>Start Time</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredSessions.map((session) => {
-                  const statusConfig = getStatusConfig(session.status);
-                  return (
-                    <TableRow key={session.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-foreground">{session.device?.title || 'Unknown'}</p>
-                          <p className="text-xs text-muted-foreground">{session.device?.deviceId || '-'}</p>
+            <div className="grid gap-4">
+              {filteredSessions.map((session) => {
+                const statusConfig = getStatusConfig(session.status);
+                const activities = Array.isArray(session.activity) ? session.activity : (session.activity ? [session.activity] : []);
+                const videos = Array.isArray(session.video) ? session.video : (session.video ? [session.video] : []);
+
+                return (
+                  <div
+                    key={session.id}
+                    className="group glassmorphism p-4 md:p-6 rounded-2xl border-white/5 hover:border-cyan-500/30 transition-all duration-300 cursor-pointer relative overflow-hidden"
+                    onClick={() => setSelectedSession(session)}
+                  >
+                    <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500/20 group-hover:bg-cyan-500 transition-all duration-500 shadow-[0_0_15px_rgba(34,211,238,0.3)]" />
+
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-6 relative z-10">
+                      {/* Device & Activity Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                            <Monitor className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-white text-lg tracking-tight truncate group-hover:text-cyan-400 transition-colors">
+                              {session.device?.title || 'Unknown Headset'}
+                            </h3>
+                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">
+                              {session.device?.deviceId || 'No ID'}
+                            </p>
+                          </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {(() => {
-                          const activities = Array.isArray(session.activity) ? session.activity : (session.activity ? [session.activity] : []);
-                          if (activities.length === 0) return '-';
-                          if (activities.length === 1) return <span className="text-foreground">{activities[0].title}</span>;
-
-                          return (
-                            <div className="flex items-center gap-2">
-                              <span className="text-foreground font-medium">{activities.length} Activities</span>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-6 w-6 p-0 rounded-full hover:bg-muted">
-                                    <Info className="w-3.5 h-3.5 text-muted-foreground" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-[300px] p-3 shadow-xl border-primary/20 bg-card">
-                                  <div className="space-y-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-primary border-b border-primary/10 pb-1">Activity List</p>
-                                    <ul className="space-y-1">
-                                      {activities.map((a, i) => (
-                                        <li key={i} className="text-xs font-medium text-foreground flex items-center gap-1.5">
-                                          <div className="w-1 h-1 rounded-full bg-primary" />
-                                          {a.title}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          );
-                        })()}
-                      </TableCell>
-                      <TableCell>
-                        {(() => {
-                          const videos = Array.isArray(session.video) ? session.video : (session.video ? [session.video] : []);
-                          const activities = Array.isArray(session.activity) ? session.activity : (session.activity ? [session.activity] : []);
-
-                          if (videos.length === 0) return '-';
-                          if (videos.length === 1) {
-                            return (
-                              <div className="flex flex-col">
-                                <span className="text-sm text-foreground">{truncateText(videos[0].title, 50)}</span>
-                                <span className="text-[10px] text-muted-foreground">{videos[0].totalTime || '-'}</span>
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground text-sm font-medium">{videos.length} Videos</span>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-6 w-6 p-0 rounded-full hover:bg-muted">
-                                    <Info className="w-3.5 h-3.5 text-muted-foreground" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-[350px] p-0 shadow-2xl border-primary/20 bg-card overflow-hidden">
-                                  <div className="bg-primary/5 px-3 py-2 border-b border-primary/10">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-primary">Video Breakdown</p>
-                                  </div>
-                                  <div className="p-3 space-y-3 max-h-[300px] overflow-y-auto">
-                                    {activities.map((activity, idx) => {
-                                      const activityVideos = videos.filter(v => v.activityId === activity.id);
-                                      if (activityVideos.length === 0) return null;
-
-                                      return (
-                                        <div key={idx} className="space-y-1.5">
-                                          <div className="flex items-center gap-2">
-                                            <div className="h-px flex-1 bg-border/50" />
-                                            <span className="text-[10px] font-semibold text-muted-foreground whitespace-nowrap">{activity.title}</span>
-                                            <div className="h-px flex-1 bg-border/50" />
-                                          </div>
-                                          <ul className="space-y-1.5 ml-1">
-                                            {activityVideos.map((v, i) => (
-                                              <li key={i} className="flex items-center justify-between gap-4">
-                                                <span className="text-xs font-medium text-foreground truncate">{v.title}</span>
-                                                <span className="text-[10px] tabular-nums text-muted-foreground bg-muted px-1.5 py-0.5 rounded whitespace-nowrap">
-                                                  {v.totalTime || '-'}
-                                                </span>
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        </div>
-                                      );
-                                    })}
-                                    {/* Handle videos with no activityId match if any */}
-                                    {(() => {
-                                      const linkedVideoIds = activities.flatMap(a => videos.filter(v => v.activityId === a.id).map(v => v.id));
-                                      const unlinkedVideos = videos.filter(v => !linkedVideoIds.includes(v.id));
-                                      if (unlinkedVideos.length === 0) return null;
-
-                                      return (
-                                        <div className="space-y-1.5 pt-1">
-                                          <div className="flex items-center gap-2">
-                                            <div className="h-px flex-1 bg-border/50" />
-                                            <span className="text-[10px] font-semibold text-muted-foreground whitespace-nowrap">Other Videos</span>
-                                            <div className="h-px flex-1 bg-border/50" />
-                                          </div>
-                                          <ul className="space-y-1.5 ml-1">
-                                            {unlinkedVideos.map((v, i) => (
-                                              <li key={i} className="flex items-center justify-between gap-4">
-                                                <span className="text-xs font-medium text-foreground truncate">{v.title}</span>
-                                                <span className="text-[10px] tabular-nums text-muted-foreground bg-muted px-1.5 py-0.5 rounded whitespace-nowrap">
-                                                  {v.totalTime || '-'}
-                                                </span>
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-                                  <div className="bg-muted/30 px-3 py-2 border-t border-border flex items-center justify-between">
-                                    <span className="text-[10px] font-medium text-muted-foreground">Total Playback</span>
-                                    <span className="text-[10px] font-bold text-primary">{videos.length} Videos</span>
-                                  </div>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          );
-                        })()}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatSafeDate(session.startTime, session.createdAt)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {(() => {
-                          if (session.duration) return formatSessionDuration(session.duration);
-                          const videos = Array.isArray(session.video) ? session.video : (session.video ? [session.video] : []);
-                          const totalSeconds = videos.reduce((acc, v) => acc + parseDurationToSeconds(v.totalTime), 0);
-                          return formatSessionDuration(totalSeconds);
-                        })()}
-                      </TableCell>
-                      <TableCell>
-                        <span className={cn('status-badge', statusConfig.className)}>
-                          {(session.status.toLowerCase() === 'in-progress' || session.status.toLowerCase() === 'running') && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                        <div className="flex items-center gap-2 mt-3">
+                          <span className="text-xs font-semibold text-cyan-100/60 flex items-center gap-1.5">
+                            <Activity className="w-3.5 h-3.5 text-cyan-400/60" />
+                            {activities.length === 1 ? activities[0].title : `${activities.length} Activities`}
+                          </span>
+                          {videos.length > 0 && (
+                            <span className="text-[10px] font-bold bg-white/5 px-2 py-0.5 rounded border border-white/5 text-white/40">
+                              {videos.length} VIDEO{videos.length !== 1 && 'S'}
+                            </span>
                           )}
+                        </div>
+                      </div>
+
+                      {/* Timeline Info */}
+                      <div className="flex-1 grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <span className="block text-[8px] uppercase font-bold text-white/30 tracking-tighter">Start Time</span>
+                          <div className="flex items-center gap-1.5 text-xs text-white/70 font-medium">
+                            <CalendarIcon className="w-3.5 h-3.5 text-cyan-400/60" />
+                            {formatSafeDate(session.startTime, session.createdAt)}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="block text-[8px] uppercase font-bold text-white/30 tracking-tighter">Duration</span>
+                          <div className="flex items-center gap-1.5 text-xs text-white/70 font-medium">
+                            <Clock className="w-3.5 h-3.5 text-cyan-400/60" />
+                            {(() => {
+                              if (session.duration) return formatSessionDuration(session.duration);
+                              const totalSeconds = videos.reduce((acc, v) => acc + parseDurationToSeconds(v.totalTime), 0);
+                              return formatSessionDuration(totalSeconds);
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Status & Actions */}
+                      <div className="flex items-center justify-between lg:justify-end gap-4 min-w-[200px]">
+                        <div className={cn(
+                          "px-3 py-1.5 rounded-full border text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest",
+                          statusConfig.className
+                        )}>
+                          <statusConfig.icon className="w-3.5 h-3.5" />
                           {statusConfig.label}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {['playing', 'paused', 'ready', 'pending', 'resumed', 'in-progress', 'running'].includes(session.status.toLowerCase()) ? (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleStopSession(session.id)}
-                            className="h-8"
-                          >
-                            Stop
-                          </Button>
-                        ) : ['completed', 'stopped'].includes(session.status.toLowerCase()) ? (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleReplaySession(session.id)}
-                            disabled={session.isReplay === true}
-                            className="h-8 hover:bg-green-500/10 hover:text-green-600 hover:border-green-500/20 transition-all"
-                            title={session.isReplay ? "This session is already being replayed" : "Replay this session"}
-                          >
-                            <RotateCcw className="w-4 h-4 mr-1" />
-                            Replay
-                          </Button>
-                        ) : (
-                          <span className="text-muted-foreground">--</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {['completed', 'stopped'].includes(session.status.toLowerCase()) ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleReplaySession(session.id);
+                              }}
+                              disabled={session.isReplay === true}
+                              className="h-9 font-bold border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-400 hover:text-black rounded-xl px-4 transition-all"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 mr-2" />
+                              REPLAY
+                            </Button>
+                          ) : ['playing', 'paused', 'ready', 'pending', 'resumed', 'in-progress', 'running'].includes(session.status.toLowerCase()) ? (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStopSession(session.id);
+                              }}
+                              className="h-9 font-bold bg-red-500/20 text-red-500 border border-red-500/30 hover:bg-red-500/40 rounded-xl px-4"
+                            >
+                              <Square className="w-3.5 h-3.5 mr-2 fill-current" />
+                              STOP
+                            </Button>
+                          ) : null}
+
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white/20 group-hover:text-cyan-400 transition-colors">
+                            <ChevronRight className="w-5 h-5" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
+
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-4 border-t bg-muted/20">
-              <p className="text-sm text-muted-foreground">
-                Showing page {page} of {totalPages} ({totalCount} sessions)
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 glassmorphism rounded-3xl border-white/5 mt-8">
+              <p className="text-sm font-medium text-cyan-400/50">
+                Log Page <span className="text-white">{page}</span> of <span className="text-white">{totalPages}</span> — {totalCount} Records
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1 || isLoading}
+                  className="bg-black/40 border-white/10 text-white hover:bg-white/5 rounded-xl px-6"
                 >
                   Previous
                 </Button>
@@ -566,6 +541,7 @@ export default function SessionHistory() {
                   size="sm"
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages || isLoading}
+                  className="bg-black/40 border-white/10 text-white hover:bg-white/5 rounded-xl px-6"
                 >
                   Next
                 </Button>
@@ -575,31 +551,92 @@ export default function SessionHistory() {
         </div>
       </TooltipProvider>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card-elevated p-4">
-          <p className="text-sm text-muted-foreground">Total Sessions</p>
-          <p className="text-2xl font-bold text-foreground">{totalCount}</p>
-        </div>
-        <div className="card-elevated p-4">
-          <p className="text-sm text-muted-foreground">Completed</p>
-          <p className="text-2xl font-bold text-status-online">
-            {filteredSessions.filter((s) => s.status.toLowerCase() === 'completed').length}
-          </p>
-        </div>
-        <div className="card-elevated p-4">
-          <p className="text-sm text-muted-foreground">Stopped</p>
-          <p className="text-2xl font-bold text-status-paused">
-            {filteredSessions.filter((s) => s.status.toLowerCase() === 'stopped').length}
-          </p>
-        </div>
-        {/* <div className="card-elevated p-4">
-          <p className="text-sm text-muted-foreground">Failed</p>
-          <p className="text-2xl font-bold text-destructive">
-            {filteredSessions.filter((s) => s.status.toLowerCase() === 'failed').length}
-          </p>
-        </div> */}
-      </div>
+      {/* Session Detail Drawer */}
+      <Sheet open={!!selectedSession} onOpenChange={(open) => !open && setSelectedSession(null)}>
+        <SheetContent className="bg-[#0a1f38] border-l border-white/10 text-white sm:max-w-md overflow-y-auto no-scrollbar">
+          {selectedSession && (
+            <div className="space-y-8 py-6">
+              <SheetHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    <Monitor className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <SheetTitle className="text-2xl font-bold text-white tracking-tight">Session Intelligence</SheetTitle>
+                    <p className="text-cyan-400/50 text-xs font-bold uppercase tracking-widest">Archive Reference: {selectedSession.id.slice(0, 8)}</p>
+                  </div>
+                </div>
+              </SheetHeader>
+
+              <div className="space-y-6">
+                {/* Device Info */}
+                <div className="glassmorphism p-5 rounded-2xl border-white/5">
+                  <h4 className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-4">Device Metrics</h4>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-white/40">Headset Title</span>
+                      <span className="text-sm font-bold text-white">{selectedSession.device?.title}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-white/40">Hardware ID</span>
+                      <span className="text-sm font-mono text-cyan-400/70">{selectedSession.device?.deviceId}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Training Breakdown */}
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest pl-1">Protocol Timeline</h4>
+                  {(() => {
+                    const activities = Array.isArray(selectedSession.activity) ? selectedSession.activity : (selectedSession.activity ? [selectedSession.activity] : []);
+                    const videos = Array.isArray(selectedSession.video) ? selectedSession.video : (selectedSession.video ? [selectedSession.video] : []);
+
+                    return (
+                      <div className="space-y-4">
+                        {activities.map((activity, idx) => {
+                          const activityVideos = videos.filter(v => v.activityId === activity.id);
+                          return (
+                            <div key={idx} className="glassmorphism p-4 rounded-xl border-white/5 bg-gradient-to-r from-white/5 to-transparent relative">
+                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-xs font-bold text-white tracking-wide">{activity.title}</span>
+                                <span className="text-[10px] font-bold text-cyan-400/40">{activityVideos.length} Steps</span>
+                              </div>
+                              <div className="space-y-2">
+                                {activityVideos.map((v, i) => (
+                                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-black/20 text-[11px]">
+                                    <span className="text-white/60 truncate max-w-[180px]">{v.title}</span>
+                                    <span className="text-cyan-400/40 tabular-nums">{v.totalTime || '0:00'}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Session Controls */}
+                <div className="pt-6 border-t border-white/5">
+                  <Button
+                    onClick={() => handleReplaySession(selectedSession.id)}
+                    disabled={selectedSession.isReplay === true}
+                    className="w-full h-12 bg-cyan-500 text-black hover:bg-cyan-400 font-bold shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all rounded-xl"
+                  >
+                    <RotateCcw className="w-5 h-5 mr-3" />
+                    INITIATE REPLAY SEQUENCE
+                  </Button>
+                  <p className="text-center text-[10px] text-white/20 mt-4 uppercase tracking-tighter">
+                    Authorized Trainer override required for live re-routing
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
