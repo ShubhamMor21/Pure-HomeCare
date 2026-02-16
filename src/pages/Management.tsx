@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { activitiesApi, videosApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,28 @@ import {
     Info,
     Database,
     MoreHorizontal,
-    Trash2
+    Trash2,
+    Folder,
+    FolderPlus,
+    Layers,
+    Grid,
+    List,
+    Search,
+    ArrowLeft,
+    Filter,
+    Clock,
+    Settings,
+    MoreVertical,
+    Download,
+    Upload,
+    Share2,
+    FileText,
+    Archive,
+    Monitor,
+    CheckCircle,
+    XCircle,
+    LayoutGrid,
+    History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +56,12 @@ import {
 import { toast } from 'sonner';
 import AddActivityDialog from '@/components/activities/AddActivityDialog';
 import AddVideoDialog from '@/components/videos/AddVideoDialog';
+import VRBackground from '@/components/ui/VRBackground';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const truncateText = (text: string | null | undefined, maxLength: number = 100): string => {
     if (!text) return '-';
@@ -42,11 +69,24 @@ const truncateText = (text: string | null | undefined, maxLength: number = 100):
     return text.slice(0, maxLength) + '...';
 };
 
+const CATEGORIES = [
+    { id: 'all', label: 'All Activities', icon: Layers, color: 'text-cyan-400' },
+    { id: 'active', label: 'Active', icon: CheckCircle, color: 'text-emerald-400' },
+    { id: 'drafts', label: 'Drafts', icon: FileText, color: 'text-amber-400' },
+    { id: 'archived', label: 'Archived', icon: Archive, color: 'text-slate-400' },
+];
+
+const TAGS = [
+    'Healthcare', 'Safety', 'Compliance', 'Soft Skills', 'Technical'
+];
+
 export default function Management() {
-    const [expandedActivities, setExpandedActivities] = useState<string[]>([]);
+    const [view, setView] = useState<'folders' | 'activity'>('folders');
+    const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+    const [currentCategory, setCurrentCategory] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
     const [activityToDelete, setActivityToDelete] = useState<string | null>(null);
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-
     const [videoToDelete, setVideoToDelete] = useState<string | null>(null);
     const [isVideoDeleteAlertOpen, setIsVideoDeleteAlertOpen] = useState(false);
 
@@ -57,10 +97,31 @@ export default function Management() {
 
     const activities = activitiesResponse?.data?.rows || [];
 
-    const toggleActivity = (id: string) => {
-        setExpandedActivities(prev =>
-            prev.includes(id) ? prev.filter(aid => aid !== id) : [...prev, id]
-        );
+    const selectedActivity = useMemo(() =>
+        activities.find(a => a.id === selectedActivityId),
+    [activities, selectedActivityId]);
+
+    const filteredActivities = useMemo(() => {
+        return activities.filter(activity => {
+            const matchesSearch = activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                 activity.identifier?.toLowerCase().includes(searchQuery.toLowerCase());
+
+            if (currentCategory === 'all') return matchesSearch;
+            if (currentCategory === 'active') return matchesSearch && activity.status === 'ACTIVE';
+            if (currentCategory === 'drafts') return matchesSearch && activity.status === 'INACTIVE';
+            if (currentCategory === 'archived') return matchesSearch && activity.status === 'DELETED';
+            return matchesSearch;
+        });
+    }, [activities, searchQuery, currentCategory]);
+
+    const handleActivityClick = (activityId: string) => {
+        setSelectedActivityId(activityId);
+        setView('activity');
+    };
+
+    const handleBackToFolders = () => {
+        setView('folders');
+        setSelectedActivityId(null);
     };
 
     const handleStatusUpdate = async (id: string, status: 'ACTIVE' | 'INACTIVE' | 'DELETED') => {
@@ -86,6 +147,9 @@ export default function Management() {
             await activitiesApi.update(activityToDelete, { status: 'DELETED' });
             toast.success('Activity deleted');
             refetch();
+            if (selectedActivityId === activityToDelete) {
+                handleBackToFolders();
+            }
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Failed to delete activity');
         } finally {
@@ -126,197 +190,395 @@ export default function Management() {
     };
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="relative min-h-[calc(100vh-4rem)] flex flex-col space-y-6 animate-fade-in p-2 md:p-6 lg:p-8 overflow-hidden">
+            <VRBackground />
+
+            {/* Header Section */}
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-black/40 backdrop-blur-xl border border-white/5 p-6 rounded-2xl">
                 <div>
-                    <h2 className="text-xl font-semibold text-foreground">Content Management</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Manage your training activities and their associated videos
+                    <h1 className="text-3xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
+                        <Layers className="w-8 h-8 text-cyan-400" />
+                        Content Library
+                    </h1>
+                    <p className="text-cyan-400/60 font-medium tracking-wider text-sm mt-1 uppercase">
+                        Manage activities, folders, and VR videos
                     </p>
                 </div>
-                <AddActivityDialog
-                    onSuccess={refetch}
-                    trigger={
-                        <Button className="w-fit shadow-lg shadow-primary/20">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Activity
-                        </Button>
-                    }
-                />
+                <div className="flex flex-wrap items-center gap-3">
+                    <AddActivityDialog
+                        onSuccess={refetch}
+                        trigger={
+                            <Button className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-6 shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                                <Plus className="w-5 h-5 mr-2" />
+                                ADD ACTIVITY
+                            </Button>
+                        }
+                    />
+                    <Button variant="outline" className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 font-bold">
+                        <Upload className="w-4 h-4 mr-2" />
+                        UPLOAD VIDEO
+                    </Button>
+                    <Button variant="outline" className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 font-bold">
+                        <Download className="w-4 h-4 mr-2" />
+                        IMPORT
+                    </Button>
+                </div>
             </div>
 
-            {isLoading ? (
-                <div className="p-24 text-center">
-                    <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
-                    <h3 className="text-lg font-medium text-foreground mb-2">Loading activities...</h3>
-                </div>
-            ) : activities.length === 0 ? (
-                <div className="card-elevated p-24 text-center">
-                    <Database className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-20" />
-                    <h3 className="text-lg font-medium text-foreground mb-2">No activities found</h3>
-                    <p className="text-muted-foreground mb-6">Start by adding your first training activity.</p>
-                    <AddActivityDialog onSuccess={refetch} />
-                </div>
-            ) : (
-                <div className="grid gap-4">
-                    {activities.map((activity) => {
-                        const isExpanded = expandedActivities.includes(activity.id);
-                        const videos = activity.videos || [];
-
-                        return (
-                            <div key={activity.id} className="card-elevated overflow-hidden transition-all duration-200">
-                                <div
-                                    className={cn(
-                                        "p-5 flex items-center justify-between transition-colors",
-                                        activity.isVideoRequired === 1 && "cursor-pointer hover:bg-muted/30",
-                                        isExpanded && "bg-muted/50 border-b border-border/50"
-                                    )}
-                                    onClick={() => activity.isVideoRequired === 1 && toggleActivity(activity.id)}
-                                >
-                                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                                        <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                                            <Database className="w-6 h-6" />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className="flex items-center gap-3">
-                                                <h3 className="text-lg font-bold text-foreground">{activity.title}</h3>
-                                                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
-                                                    {activity.identifier || 'NO ID'}
-                                                </span>
-                                                <span className={cn(
-                                                    "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                                                    activity.status === 'ACTIVE'
-                                                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-                                                        : "bg-slate-500/10 text-slate-400 border border-slate-500/10"
-                                                )}>
-                                                    {activity.status}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground truncate max-w-xl">
-                                                {activity.discription || 'No description provided'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4">
-                                        {activity.isVideoRequired === 1 && (
-                                            <div className="hidden sm:flex flex-col items-end px-4 border-r border-border/50">
-                                                <span className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Videos</span>
-                                                <span className="text-xl font-black text-primary">{videos.length}</span>
-                                            </div>
-                                        )}
-
-                                        {/* Actions removed as per request */}
-
-                                        {activity.isVideoRequired === 1 && (
-                                            isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />
-                                        )}
-                                    </div>
-                                </div>
-
-                                {isExpanded && (
-                                    <div className="p-6 bg-muted/20 animate-in slide-in-from-top-2 duration-200">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="flex items-center gap-2">
-                                                <VideoIcon className="w-4 h-4 text-primary" />
-                                                <h4 className="font-bold text-foreground">Activity Videos</h4>
-                                            </div>
-                                            {activity.isVideoRequired === 1 && (
-                                                <AddVideoDialog
-                                                    activityId={activity.id}
-                                                    activityName={activity.title}
-                                                    onSuccess={refetch}
-                                                    trigger={
-                                                        <Button variant="outline" size="sm" className="h-9 px-4 gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10">
-                                                            <Plus className="w-4 h-4" />
-                                                            Add Video
-                                                        </Button>
-                                                    }
-                                                />
+            <div className="relative z-10 flex flex-1 gap-6 overflow-hidden">
+                {/* Left Panel - Navigation */}
+                <div className="hidden lg:flex flex-col w-72 bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden">
+                    <div className="p-4 border-b border-white/5">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                            <Input
+                                placeholder="Search library..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-cyan-500/50"
+                            />
+                        </div>
+                    </div>
+                    <ScrollArea className="flex-1">
+                        <div className="p-4 space-y-6">
+                            <div>
+                                <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 px-2">Root Folders</h3>
+                                <div className="space-y-1">
+                                    {CATEGORIES.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => setCurrentCategory(cat.id)}
+                                            className={cn(
+                                                "w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all group",
+                                                currentCategory === cat.id
+                                                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.1)]"
+                                                    : "text-white/60 hover:text-white hover:bg-white/5 border border-transparent"
                                             )}
-                                        </div>
-
-                                        {videos.length === 0 ? (
-                                            <div className="bg-background/50 rounded-xl border border-dashed border-border p-8 text-center">
-                                                <p className="text-sm text-muted-foreground mb-4">
-                                                    {activity.isVideoRequired === 1
-                                                        ? "No videos uploaded for this activity yet"
-                                                        : "This activity does not require videos"}
-                                                </p>
-                                                {activity.isVideoRequired === 1 && (
-                                                    <AddVideoDialog
-                                                        activityId={activity.id}
-                                                        activityName={activity.title}
-                                                        onSuccess={refetch}
-                                                    />
-                                                )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <cat.icon className={cn("w-4 h-4 transition-colors", currentCategory === cat.id ? cat.color : "group-hover:text-white")} />
+                                                <span className="font-bold text-sm tracking-wide uppercase">{cat.label}</span>
                                             </div>
-                                        ) : (
-                                            <div className="grid gap-3">
-                                                {videos.map((video) => (
-                                                    <div key={video.id} className="bg-card rounded-lg border p-4 flex items-center justify-between hover:border-primary/30 transition-all hover:shadow-sm">
-                                                        <div className="flex items-center gap-3 min-w-0">
-                                                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                                                                <VideoIcon className="w-5 h-5 text-muted-foreground" />
+                                            {currentCategory === cat.id && (
+                                                <div className="w-1 h-4 bg-cyan-400 rounded-full" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 px-2">Tags & Categories</h3>
+                                <div className="space-y-1">
+                                    {TAGS.map((tag) => (
+                                        <button
+                                            key={tag}
+                                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all group border border-transparent"
+                                        >
+                                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/40 group-hover:bg-cyan-400 group-hover:shadow-[0_0_5px_rgba(34,211,238,0.5)]" />
+                                            <span className="font-bold text-sm tracking-wide uppercase">{tag}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </ScrollArea>
+                    <div className="p-4 border-t border-white/5 bg-black/20">
+                        <div className="flex items-center gap-3 px-3 py-2">
+                            <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+                                <Monitor className="w-4 h-4 text-cyan-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Library Status</p>
+                                <p className="text-xs text-white/60 truncate uppercase font-bold">Synchronized</p>
+                            </div>
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="flex-1 flex flex-col bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden">
+                    {/* Breadcrumbs / View Header */}
+                    <div className="p-4 border-b border-white/5 bg-black/20 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
+                            <button
+                                onClick={handleBackToFolders}
+                                className={cn(
+                                    "text-white/40 hover:text-cyan-400 transition-colors",
+                                    view === 'folders' && "pointer-events-none"
+                                )}
+                            >
+                                CONTENT LIBRARY
+                            </button>
+                            {view === 'activity' && (
+                                <>
+                                    <ChevronRight className="w-4 h-4 text-white/20" />
+                                    <span className="text-cyan-400">{selectedActivity?.title}</span>
+                                </>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="text-white/40 hover:text-white hover:bg-white/5">
+                                <Grid className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-white/40 hover:text-white hover:bg-white/5">
+                                <List className="w-4 h-4" />
+                            </Button>
+                            <Separator orientation="vertical" className="h-4 bg-white/10 mx-1" />
+                            <Button variant="ghost" size="icon" className="text-white/40 hover:text-white hover:bg-white/5">
+                                <Filter className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <ScrollArea className="flex-1">
+                        <div className="p-6">
+                            {isLoading ? (
+                                <div className="flex flex-col items-center justify-center py-32">
+                                    <div className="relative">
+                                        <div className="w-16 h-16 rounded-full border-4 border-cyan-500/20 border-t-cyan-500 animate-spin" />
+                                        <Layers className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-cyan-400" />
+                                    </div>
+                                    <p className="mt-4 text-cyan-400 font-bold tracking-widest uppercase animate-pulse">Initializing Library...</p>
+                                </div>
+                            ) : view === 'folders' ? (
+                                <>
+                                    {filteredActivities.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-32 text-center">
+                                            <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+                                                <FolderPlus className="w-10 h-10 text-white/20" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white uppercase tracking-tight mb-2">Empty Archive</h3>
+                                            <p className="text-white/40 max-w-md mx-auto mb-8 uppercase text-sm font-medium tracking-wide">
+                                                No activities found in this sector. Initiate a new training activity to begin.
+                                            </p>
+                                            <AddActivityDialog onSuccess={refetch} />
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                                            {filteredActivities.map((activity) => (
+                                                <div
+                                                    key={activity.id}
+                                                    onClick={() => handleActivityClick(activity.id)}
+                                                    className="group relative cursor-pointer"
+                                                >
+                                                    {/* Folder Shape Card */}
+                                                    <div className="absolute inset-0 bg-cyan-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                                    <div className="relative bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-cyan-500/50 hover:bg-white/[0.08] transition-all duration-300 transform group-hover:-translate-y-1">
+                                                        <div className="flex items-start justify-between mb-4">
+                                                            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 group-hover:border-cyan-400 group-hover:bg-cyan-500/20 transition-all duration-300">
+                                                                <Folder className="w-7 h-7 text-cyan-400" />
                                                             </div>
-                                                            <div className="min-w-0">
-                                                                <p className="font-bold text-foreground truncate">{video.title}</p>
-                                                                <div className="flex items-center gap-3 mt-0.5">
-                                                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                                                        <Loader2 className="w-3 h-3" />
-                                                                        {video.totalTime || 'N/A'}
-                                                                    </span>
-                                                                    <span className="w-1 h-1 rounded-full bg-border" />
-                                                                    <span className="text-xs text-muted-foreground truncate">
-                                                                        {truncateText(video.discription, 60)}
-                                                                    </span>
+                                                            <div className="flex flex-col items-end gap-2">
+                                                                <Badge className={cn(
+                                                                    "px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                                                                    activity.status === 'ACTIVE'
+                                                                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                                                                        : "bg-slate-500/10 text-slate-400 border-white/10"
+                                                                )}>
+                                                                    {activity.status}
+                                                                </Badge>
+                                                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-black/40 border border-white/5">
+                                                                    <VideoIcon className="w-3 h-3 text-cyan-400" />
+                                                                    <span className="text-[10px] font-black text-white/80">{activity.videos?.length || 0}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="hidden sm:flex items-center gap-2 mr-2">
-                                                                <span className={cn(
-                                                                    "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                                                                    video.status === 'ACTIVE'
-                                                                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-                                                                        : "bg-slate-500/10 text-slate-400 border border-slate-500/10"
-                                                                )}>
-                                                                    {video.status}
+
+                                                        <div className="space-y-2">
+                                                            <h3 className="font-black text-lg text-white group-hover:text-cyan-400 transition-colors uppercase tracking-tight leading-tight">
+                                                                {activity.title}
+                                                            </h3>
+                                                            <p className="text-xs text-white/40 line-clamp-2 uppercase font-medium leading-relaxed">
+                                                                {activity.discription || 'No description encrypted for this activity.'}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                                <Clock className="w-3 h-3 text-white/20" />
+                                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                                                                    Updated {new Date(activity.updatedAt || Date.now()).toLocaleDateString()}
                                                                 </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white">
+                                                                            <MoreVertical className="w-4 h-4" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end" className="w-48 bg-[#0a1f38] border-white/10 text-white">
+                                                                        <DropdownMenuLabel className="uppercase tracking-widest text-[10px] text-white/40">File Actions</DropdownMenuLabel>
+                                                                        <DropdownMenuSeparator className="bg-white/5" />
+                                                                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleActivityClick(activity.id); }} className="hover:bg-white/5 focus:bg-white/5 cursor-pointer uppercase font-bold text-xs">
+                                                                            <Layers className="w-4 h-4 mr-2 text-cyan-400" /> Open Folder
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleStatusUpdate(activity.id, activity.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'); }} className="hover:bg-white/5 focus:bg-white/5 cursor-pointer uppercase font-bold text-xs">
+                                                                            {activity.status === 'ACTIVE' ? <XCircle className="w-4 h-4 mr-2 text-amber-400" /> : <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />}
+                                                                            {activity.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuSeparator className="bg-white/5" />
+                                                                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setActivityToDelete(activity.id); setIsDeleteAlertOpen(true); }} className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer uppercase font-bold text-xs">
+                                                                            <Trash2 className="w-4 h-4 mr-2" /> Delete Archive
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white/5 border border-white/10 rounded-2xl p-6">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-20 h-20 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                                                <Folder className="w-10 h-10 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <h2 className="text-2xl font-black text-white uppercase tracking-tight">{selectedActivity?.title}</h2>
+                                                    <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 font-black uppercase tracking-widest text-[10px]">
+                                                        {selectedActivity?.status}
+                                                    </Badge>
+                                                </div>
+                                                <p className="text-white/60 text-sm max-w-2xl uppercase font-bold tracking-wide">
+                                                    {selectedActivity?.discription || 'Detailed activity matrix not available.'}
+                                                </p>
+                                                <div className="flex items-center gap-6 mt-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Monitor className="w-4 h-4 text-cyan-400" />
+                                                        <span className="text-xs font-black text-white/40 uppercase tracking-widest">Identifier: <span className="text-white/80">{selectedActivity?.identifier}</span></span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <VideoIcon className="w-4 h-4 text-cyan-400" />
+                                                        <span className="text-xs font-black text-white/40 uppercase tracking-widest">Video Count: <span className="text-white/80">{selectedActivity?.videos?.length || 0}</span></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <AddVideoDialog
+                                                activityId={selectedActivity?.id || ''}
+                                                activityName={selectedActivity?.title || ''}
+                                                onSuccess={refetch}
+                                                trigger={
+                                                    <Button className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold">
+                                                        <Plus className="w-4 h-4 mr-2" />
+                                                        ADD VIDEO
+                                                    </Button>
+                                                }
+                                            />
+                                            <Button variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10 font-bold">
+                                                <Settings className="w-4 h-4 mr-2" />
+                                                SETTINGS
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between px-2">
+                                            <h3 className="text-xs font-black text-cyan-400 uppercase tracking-[0.3em]">Video Assets Matrix</h3>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Sort by: <span className="text-white/60">Order Number</span></span>
+                                                <LayoutGrid className="w-4 h-4 text-cyan-400" />
+                                            </div>
+                                        </div>
+
+                                        {!selectedActivity?.videos || selectedActivity.videos.length === 0 ? (
+                                            <div className="bg-white/5 border border-dashed border-white/10 rounded-2xl p-16 text-center">
+                                                <VideoIcon className="w-12 h-12 text-white/10 mx-auto mb-4" />
+                                                <h4 className="text-lg font-bold text-white uppercase tracking-tight mb-1">No Video Uplinks</h4>
+                                                <p className="text-white/40 text-sm uppercase font-medium tracking-wide mb-6">Connect video assets to this activity folder to begin training.</p>
+                                                <AddVideoDialog
+                                                    activityId={selectedActivity?.id || ''}
+                                                    activityName={selectedActivity?.title || ''}
+                                                    onSuccess={refetch}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="grid gap-4">
+                                                {selectedActivity.videos.map((video, index) => (
+                                                    <div
+                                                        key={video.id}
+                                                        className="group bg-black/40 backdrop-blur-md border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-cyan-500/30 transition-all duration-300"
+                                                    >
+                                                        <div className="flex items-center gap-6 flex-1 min-w-0">
+                                                            <div className="relative w-12 h-12 flex-shrink-0 bg-cyan-500/10 rounded-xl flex items-center justify-center border border-cyan-500/20 group-hover:border-cyan-400 transition-colors">
+                                                                <VideoIcon className="w-5 h-5 text-cyan-400" />
+                                                                <div className="absolute -top-2 -left-2 w-5 h-5 bg-cyan-500 text-black text-[10px] font-black flex items-center justify-center rounded-lg border border-black shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+                                                                    {index + 1}
+                                                                </div>
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="flex items-center gap-3 mb-1">
+                                                                    <h4 className="font-bold text-white uppercase tracking-wide truncate group-hover:text-cyan-400 transition-colors">
+                                                                        {video.title}
+                                                                    </h4>
+                                                                    <Badge className={cn(
+                                                                        "text-[8px] px-1.5 py-0 rounded font-black uppercase tracking-widest",
+                                                                        video.status === 'ACTIVE' ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-white/40"
+                                                                    )}>
+                                                                        {video.status}
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Clock className="w-3 h-3 text-cyan-400/60" />
+                                                                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{video.totalTime || '00:00'}</span>
+                                                                    </div>
+                                                                    <Separator orientation="vertical" className="h-2 bg-white/10" />
+                                                                    <p className="text-[10px] font-medium text-white/30 uppercase tracking-wide truncate">
+                                                                        {video.discription || 'No metadata encrypted.'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 ml-4">
+                                                            <div className="hidden sm:flex items-center gap-1">
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button variant="ghost" size="icon" className="w-8 h-8 text-white/40 hover:text-cyan-400 hover:bg-cyan-500/10">
+                                                                                <Share2 className="w-4 h-4" />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent className="bg-[#0a1f38] border-white/10 text-white uppercase font-black text-[10px] tracking-widest">Share Protocol</TooltipContent>
+                                                                    </Tooltip>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button variant="ghost" size="icon" className="w-8 h-8 text-white/40 hover:text-cyan-400 hover:bg-cyan-500/10">
+                                                                                <Settings className="w-4 h-4" />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent className="bg-[#0a1f38] border-white/10 text-white uppercase font-black text-[10px] tracking-widest">Configure Node</TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
                                                             </div>
                                                             <DropdownMenu>
                                                                 <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
-                                                                        <MoreHorizontal className="w-4 h-4" />
+                                                                    <Button variant="ghost" size="icon" className="h-9 w-9 text-white/40 hover:text-white hover:bg-white/5">
+                                                                        <MoreHorizontal className="w-5 h-5" />
                                                                     </Button>
                                                                 </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end" className="w-40">
-                                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                                    <DropdownMenuSeparator />
-                                                                    {video.status === 'ACTIVE' ? (
-                                                                        <DropdownMenuItem
-                                                                            className="text-amber-600 focus:text-amber-600"
-                                                                            onClick={() => handleVideoStatusUpdate(video.id, 'INACTIVE')}
-                                                                        >
-                                                                            Set Inactive
-                                                                        </DropdownMenuItem>
-                                                                    ) : (
-                                                                        <DropdownMenuItem
-                                                                            className="text-emerald-600 focus:text-emerald-600"
-                                                                            onClick={() => handleVideoStatusUpdate(video.id, 'ACTIVE')}
-                                                                        >
-                                                                            Set Active
-                                                                        </DropdownMenuItem>
-                                                                    )}
-                                                                    <DropdownMenuItem
-                                                                        className="text-destructive focus:text-destructive"
-                                                                        onClick={() => {
-                                                                            setVideoToDelete(video.id);
-                                                                            setIsVideoDeleteAlertOpen(true);
-                                                                        }}
-                                                                    >
-                                                                        Delete Video
+                                                                <DropdownMenuContent align="end" className="w-48 bg-[#0a1f38] border-white/10 text-white">
+                                                                    <DropdownMenuLabel className="uppercase tracking-widest text-[10px] text-white/40">Asset Controls</DropdownMenuLabel>
+                                                                    <DropdownMenuSeparator className="bg-white/5" />
+                                                                    <DropdownMenuItem onClick={() => handleVideoStatusUpdate(video.id, video.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')} className="hover:bg-white/5 focus:bg-white/5 cursor-pointer uppercase font-bold text-xs">
+                                                                        {video.status === 'ACTIVE' ? <XCircle className="w-4 h-4 mr-2 text-amber-400" /> : <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />}
+                                                                        {video.status === 'ACTIVE' ? 'Set Offline' : 'Set Online'}
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem className="hover:bg-white/5 focus:bg-white/5 cursor-pointer uppercase font-bold text-xs">
+                                                                        <History className="w-4 h-4 mr-2 text-cyan-400" /> Reorder Step
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuSeparator className="bg-white/5" />
+                                                                    <DropdownMenuItem onClick={() => { setVideoToDelete(video.id); setIsVideoDeleteAlertOpen(true); }} className="text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer uppercase font-bold text-xs">
+                                                                        <Trash2 className="w-4 h-4 mr-2" /> Purge Asset
                                                                     </DropdownMenuItem>
                                                                 </DropdownMenuContent>
                                                             </DropdownMenu>
@@ -326,42 +588,43 @@ export default function Management() {
                                             </div>
                                         )}
                                     </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
                 </div>
-            )}
+            </div>
 
+            {/* Alert Dialogs - Updated Styling */}
             <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-[#0a1f38] border-white/10 text-white">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the activity and remove it from our servers.
+                        <AlertDialogTitle className="text-xl font-black uppercase tracking-tight text-white">Execute Purge Command?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/60 uppercase font-bold text-xs tracking-wide">
+                            Warning: This action will permanently erase the activity archive and all associated metadata. This operation cannot be reversed.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            Delete
+                    <AlertDialogFooter className="pt-4 gap-3">
+                        <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 uppercase font-black text-xs tracking-widest">Abort</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600 text-white uppercase font-black text-xs tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                            Confirm Purge
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
 
             <AlertDialog open={isVideoDeleteAlertOpen} onOpenChange={setIsVideoDeleteAlertOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-[#0a1f38] border-white/10 text-white">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Video?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the video.
+                        <AlertDialogTitle className="text-xl font-black uppercase tracking-tight text-white">Decommission Asset?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-white/60 uppercase font-bold text-xs tracking-wide">
+                            Permanent deletion of this video asset will disrupt any active training protocols utilizing it.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmVideoDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            Delete Video
+                    <AlertDialogFooter className="pt-4 gap-3">
+                        <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 uppercase font-black text-xs tracking-widest">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmVideoDelete} className="bg-red-500 hover:bg-red-600 text-white uppercase font-black text-xs tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                            Decommission
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
