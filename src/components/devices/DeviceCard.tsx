@@ -1,6 +1,6 @@
 import { Device, SessionState } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
-import { Battery, BatteryLow, BatteryMedium, Wifi, WifiOff, Monitor, Trash2, Play, Pause, RotateCcw, Square } from 'lucide-react';
+import { Battery, BatteryLow, BatteryMedium, Wifi, WifiOff, Monitor, Trash2, Play, Pause, RotateCcw, Square, Activity as ActivityIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 
