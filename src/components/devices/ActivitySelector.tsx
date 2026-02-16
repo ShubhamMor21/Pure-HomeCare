@@ -20,9 +20,8 @@ interface ActivitySelectorProps {
 }
 
 const ActivityIcon = ({ type }: { type: ActivityType }) => {
-  // Use string based comparison since ActivityType is now string
-  if (type === 'making-sandwich') return <Utensils className="w-5 h-5" />;
-  return <VideoIcon className="w-5 h-5" />;
+  if (type === 'making-sandwich') return <Utensils className="w-8 h-8" />;
+  return <VideoIcon className="w-8 h-8" />;
 };
 
 export default function ActivitySelector({
@@ -35,16 +34,12 @@ export default function ActivitySelector({
   className,
 }: ActivitySelectorProps) {
   const getSelectedConfig = (activityId: string) => {
-    // Determine the stable order: list of IDs for selected activities, in the order they appear in the 'activities' array
     const selectedIdsInOrder = activities
       .filter(a => selectedActivities.some(sa => sa.activityId === a.id))
       .map(a => a.id);
 
     const indexInSelectedOrder = selectedIdsInOrder.indexOf(activityId);
     const activitySelection = selectedActivities.find(sa => sa.activityId === activityId);
-
-    // Check if we should hide the sequence number
-    // Only hide if only one activity is selected
     const shouldHideOrder = selectedActivities.length <= 1;
 
     return indexInSelectedOrder !== -1
@@ -58,124 +53,131 @@ export default function ActivitySelector({
   };
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-foreground">Select Activity</h3>
+    <div className={cn("space-y-6", className)}>
+      <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div>
+          <h3 className="text-lg font-bold text-white tracking-tight">Select Training</h3>
+          <p className="text-[10px] text-cyan-400/60 uppercase tracking-widest font-bold mt-1">Activity Library</p>
+        </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 no-scrollbar">
         {activities.map((activity) => {
           const config = getSelectedConfig(activity.id);
           const isSelected = config.isSelected;
 
           return (
-            <div key={activity.id}>
+            <div key={activity.id} className="group/item">
               <div
                 role="button"
                 tabIndex={0}
                 onClick={() => !disabled && onSelectActivity(activity.id)}
-                onKeyDown={(e) => {
-                  if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
-                    e.preventDefault();
-                    onSelectActivity(activity.id);
-                  }
-                }}
                 className={cn(
-                  'w-full p-4 rounded-xl border text-left transition-all relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/50',
+                  'w-full rounded-2xl border text-left transition-all duration-300 relative overflow-hidden focus:outline-none',
                   isSelected
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-border bg-card hover:border-primary/30 hover:bg-muted/50',
+                    ? 'border-cyan-500 bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.1)]'
+                    : 'border-white/5 bg-white/5 hover:border-white/20 hover:bg-white/10',
                   !disabled ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'
                 )}
               >
-                {isSelected && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
-                )}
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-lg flex items-center justify-center relative',
-                      isSelected
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    )}
-                  >
-                    <ActivityIcon type={activity.id} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-foreground">{activity.name}</p>
-                      {activity.hasVideos && activity.videos && activity.videos.length > 0 ? (
-                        <span className="px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
-                          {activity.videos.length} {activity.videos.length === 1 ? 'Video' : 'Videos'}
-                        </span>
-                      ) : activity.hasVideos && (
-                        <span className="px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
-                          No Videos Available
-                        </span>
+                {/* Visual Accent */}
+                <div className={cn(
+                  "absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 -mr-16 -mt-16 transition-colors duration-500",
+                  isSelected ? "bg-cyan-500" : "bg-white/10 group-hover/item:bg-white/20"
+                )} />
+
+                <div className="p-4 relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={cn(
+                        'w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500',
+                        isSelected
+                          ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(34,211,238,0.4)] rotate-3'
+                          : 'bg-white/10 text-white/40 group-hover/item:text-white/60 group-hover/item:scale-105'
                       )}
+                    >
+                      <ActivityIcon type={activity.id} />
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm text-muted-foreground truncate flex-1">
-                        {activity.description}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className={cn(
+                          "font-bold tracking-tight transition-colors",
+                          isSelected ? "text-cyan-400" : "text-white"
+                        )}>
+                          {activity.name}
+                        </p>
+                        {activity.hasVideos && activity.videos && activity.videos.length > 0 && (
+                          <span className="px-1.5 py-0.5 rounded-md bg-white/10 text-white/40 text-[8px] font-bold uppercase tracking-widest">
+                            {activity.videos.length} STEP{activity.videos.length !== 1 && 'S'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-white/40 line-clamp-2 leading-relaxed">
+                        {activity.description || 'Initialize high-fidelity simulation environment for professional training.'}
                       </p>
                     </div>
+
+                    {isSelected ? (
+                      <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+                        <Check className="w-5 h-5 text-black" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover/item:border-white/30 transition-colors">
+                        <ChevronRight className="w-5 h-5 text-white/20 group-hover/item:text-white/40" />
+                      </div>
+                    )}
                   </div>
-                  {isSelected ? (
-                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-4 h-4 text-primary-foreground" />
-                    </div>
-                  ) : (
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                  )}
                 </div>
+
+                {/* Selection Footer Indicator */}
+                {isSelected && (
+                  <div className="h-1 w-full bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500 animate-shimmer" />
+                )}
               </div>
 
               {/* Video selection for activity */}
               {isSelected && activity.hasVideos && activity.videos && (
-                <div className="mt-3 ml-4 pl-4 border-l-2 border-primary/30 animate-fade-in">
-                  <p className="text-sm font-medium text-muted-foreground mb-3">Select Video</p>
+                <div className="mt-4 ml-7 pl-6 border-l border-white/10 space-y-3 animate-in fade-in slide-in-from-left-2 duration-300">
+                  <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-2">Simulation Variants</p>
                   <div className="space-y-2">
                     {activity.videos.map((video) => {
                       const selectedVideo = config.videoId;
-                      const isSelected = video.id === selectedVideo;
+                      const isVideoSelected = video.id === selectedVideo;
 
                       return (
                         <div
                           key={video.id}
                           className={cn(
-                            'flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer relative overflow-hidden',
-                            isSelected
-                              ? 'border-primary bg-primary/10 ring-1 ring-primary'
-                              : 'border-border hover:border-primary/30 hover:bg-muted/50'
+                            'group/video flex items-center gap-3 p-3 rounded-xl border transition-all duration-300 cursor-pointer relative overflow-hidden',
+                            isVideoSelected
+                              ? 'border-cyan-500/30 bg-cyan-500/5'
+                              : 'border-white/5 bg-white/2 hover:border-white/10 hover:bg-white/5'
                           )}
                           onClick={(e) => {
                             e.stopPropagation();
                             onSelectVideo(activity.id, video.id);
                           }}
                         >
-                          {isSelected && (
-                            <div className="w-2 h-full absolute left-0 top-0 bg-primary" />
-                          )}
+                          <div className={cn(
+                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                            isVideoSelected ? "bg-cyan-500 shadow-[0_0_8px_rgba(34,211,238,0.8)]" : "bg-white/10 group-hover/video:bg-white/30"
+                          )} />
 
-                          <div className="flex-1 ml-1 cursor-pointer flex items-center justify-between">
-                            <div className="flex flex-col">
-                              <span className="font-medium text-foreground">
-                                {video.name}
-                              </span>
-                              {isSelected && (
-                                <span className="text-[10px] text-primary font-bold uppercase tracking-wider">
-                                  Selected
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-sm text-muted-foreground">{video.duration}</span>
+                          <div className="flex-1 cursor-pointer flex items-center justify-between">
+                            <span className={cn(
+                              "text-xs font-semibold transition-colors",
+                              isVideoSelected ? "text-cyan-400" : "text-white/60 group-hover/video:text-white"
+                            )}>
+                              {video.name}
+                            </span>
+                            <span className="text-[10px] font-medium text-white/20 group-hover/video:text-white/40 tabular-nums">
+                              {video.duration}
+                            </span>
                           </div>
 
-                          {isSelected && (
-                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                              <Check className="w-3 h-3 text-primary-foreground" />
-                            </div>
+                          {isVideoSelected && (
+                            <Check className="w-3.5 h-3.5 text-cyan-400" />
                           )}
                         </div>
                       );
