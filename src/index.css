@@ -1,0 +1,252 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Pure Homecare VR Training - Design System
+   Healthcare-grade professional UI with modern tech touches
+   All colors in HSL format
+*/
+
+@layer base {
+  :root {
+    /* Core backgrounds */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+
+    /* Cards and elevated surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    /* Popovers and dropdowns */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    /* Primary - Deep Teal (Healthcare Trust) */
+    --primary: 187 65% 28%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft Slate */
+    --secondary: 210 15% 94%;
+    --secondary-foreground: 215 25% 25%;
+
+    /* Muted surfaces */
+    --muted: 210 15% 96%;
+    --muted-foreground: 215 15% 45%;
+
+    /* Accent - Vibrant Cyan */
+    --accent: 187 85% 43%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders and inputs */
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 187 65% 28%;
+
+    --radius: 0.625rem;
+
+    /* Sidebar */
+    --sidebar-background: 215 25% 15%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 187 85% 43%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 20% 22%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 215 20% 22%;
+    --sidebar-ring: 187 85% 43%;
+
+    /* Status Colors */
+    --status-online: 142 71% 45%;
+    --status-offline: 0 0% 60%;
+    --status-running: 142 71% 45%;
+    --status-paused: 45 93% 47%;
+    --status-loading: 210 100% 50%;
+    --status-idle: 210 15% 70%;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(187, 65%, 28%) 0%, hsl(187, 85%, 35%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(187, 85%, 43%) 0%, hsl(195, 85%, 50%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(215, 25%, 15%) 0%, hsl(215, 30%, 10%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(215, 25%, 15%, 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(215, 25%, 15%, 0.08), 0 2px 4px -2px hsl(215, 25%, 15%, 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(215, 25%, 15%, 0.08), 0 4px 6px -4px hsl(215, 25%, 15%, 0.06);
+    --shadow-glow: 0 0 20px hsl(187, 85%, 43%, 0.3);
+  }
+
+  .dark {
+    --background: 215 30% 8%;
+    --foreground: 210 20% 95%;
+
+    --card: 215 25% 12%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 215 25% 12%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 187 85% 43%;
+    --primary-foreground: 215 25% 10%;
+
+    --secondary: 215 20% 18%;
+    --secondary-foreground: 210 20% 90%;
+
+    --muted: 215 20% 15%;
+    --muted-foreground: 210 15% 55%;
+
+    --accent: 187 85% 43%;
+    --accent-foreground: 215 25% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
+    --ring: 187 85% 43%;
+
+    --sidebar-background: 215 30% 6%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 187 85% 43%;
+    --sidebar-primary-foreground: 215 25% 10%;
+    --sidebar-accent: 215 25% 12%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 215 25% 15%;
+    --sidebar-ring: 187 85% 43%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+
+  /* Status badges */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .status-online {
+    @apply bg-[hsl(var(--status-online)/0.15)] text-[hsl(var(--status-online))];
+  }
+
+  .status-offline {
+    @apply bg-[hsl(var(--status-offline)/0.15)] text-[hsl(var(--status-offline))];
+  }
+
+  .status-running {
+    @apply bg-[hsl(var(--status-running)/0.15)] text-[hsl(var(--status-running))];
+  }
+
+  .status-paused {
+    @apply bg-[hsl(var(--status-paused)/0.15)] text-[hsl(var(--status-paused))];
+  }
+
+  .status-loading {
+    @apply bg-[hsl(var(--status-loading)/0.15)] text-[hsl(var(--status-loading))];
+  }
+
+  .status-idle {
+    @apply bg-[hsl(var(--status-idle)/0.15)] text-[hsl(var(--status-idle))];
+  }
+
+  /* Card variants */
+  .card-elevated {
+    @apply bg-card rounded-xl border shadow-md;
+  }
+
+  .card-interactive {
+    @apply bg-card rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30;
+  }
+
+  /* Device status indicator dot */
+  .status-dot {
+    @apply w-2.5 h-2.5 rounded-full;
+  }
+
+  .status-dot-online {
+    @apply bg-[hsl(var(--status-online))] shadow-[0_0_8px_hsl(var(--status-online)/0.5)];
+  }
+
+  .status-dot-offline {
+    @apply bg-[hsl(var(--status-offline))];
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+}
+
+@layer utilities {
+
+  /* Animation utilities */
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 10px hsl(187, 85%, 43%, 0.2);
+    }
+
+    to {
+      box-shadow: 0 0 20px hsl(187, 85%, 43%, 0.4);
+    }
+  }
+
+  .animate-blink {
+    animation: blink 1s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.4;
+      transform: scale(0.95);
+    }
+  }
+
+  /* Shake animation */
+  .animate-shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  }
+
+  @keyframes shake {
+    10%, 90% {
+      transform: translate3d(-1px, 0, 0);
+    }
+    
+    20%, 80% {
+      transform: translate3d(2px, 0, 0);
+    }
+
+    30%, 50%, 70% {
+      transform: translate3d(-4px, 0, 0);
+    }
+
+    40%, 60% {
+      transform: translate3d(4px, 0, 0);
+    }
+  }
+}
