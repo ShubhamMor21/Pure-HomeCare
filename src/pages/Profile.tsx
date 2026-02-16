@@ -89,14 +89,14 @@ export default function Profile() {
 
   if (isPageLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+      <div className="flex items-center justify-center min-h-full py-20">
         <Loader2 className="w-12 h-12 animate-spin text-cyan-400" />
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] space-y-8 animate-fade-in p-2 md:p-6 lg:p-8">
+    <div className="relative min-h-full space-y-8 animate-fade-in p-4 md:p-6 lg:p-8">
       <VRBackground />
 
       <div className="max-w-4xl mx-auto space-y-8">

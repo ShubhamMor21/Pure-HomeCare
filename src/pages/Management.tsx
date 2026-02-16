@@ -190,7 +190,7 @@ export default function Management() {
     };
 
     return (
-        <div className="relative min-h-[calc(100vh-4rem)] flex flex-col space-y-6 animate-fade-in p-2 md:p-6 lg:p-8 overflow-hidden">
+        <div className="relative min-h-full flex flex-col space-y-6 animate-fade-in p-4 md:p-6 lg:p-8">
             <VRBackground />
 
             {/* Header Section */}
@@ -225,9 +225,9 @@ export default function Management() {
                 </div>
             </div>
 
-            <div className="relative z-10 flex flex-1 gap-6 overflow-hidden">
+            <div className="relative z-10 flex flex-col lg:flex-row flex-1 gap-6">
                 {/* Left Panel - Navigation */}
-                <div className="hidden lg:flex flex-col w-72 bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden">
+                <div className="hidden lg:flex flex-col w-72 bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl h-fit sticky top-24">
                     <div className="p-4 border-b border-white/5">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
@@ -239,7 +239,7 @@ export default function Management() {
                             />
                         </div>
                     </div>
-                    <ScrollArea className="flex-1">
+                    <div className="flex-1 overflow-visible">
                         <div className="p-4 space-y-6">
                             <div>
                                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-3 px-2">Root Folders</h3>
@@ -282,7 +282,7 @@ export default function Management() {
                                 </div>
                             </div>
                         </div>
-                    </ScrollArea>
+                    </div>
                     <div className="p-4 border-t border-white/5 bg-black/20">
                         <div className="flex items-center gap-3 px-3 py-2">
                             <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
@@ -298,9 +298,9 @@ export default function Management() {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden">
+                <div className="flex-1 flex flex-col bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl">
                     {/* Breadcrumbs / View Header */}
-                    <div className="p-4 border-b border-white/5 bg-black/20 flex items-center justify-between">
+                    <div className="p-4 border-b border-white/5 bg-black/20 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md rounded-t-2xl">
                         <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
                             <button
                                 onClick={handleBackToFolders}
@@ -332,7 +332,7 @@ export default function Management() {
                         </div>
                     </div>
 
-                    <ScrollArea className="flex-1">
+                    <div className="flex-1">
                         <div className="p-6">
                             {isLoading ? (
                                 <div className="flex flex-col items-center justify-center py-32">
@@ -593,7 +593,7 @@ export default function Management() {
                                 </div>
                             )}
                         </div>
-                    </ScrollArea>
+                    </div>
                 </div>
             </div>
 
